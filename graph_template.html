@@ -1,0 +1,2586 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>女優 × 男優 合作關聯圖</title>
+<style>
+:root {
+  /* 淺色：薰衣草紙感，節點用深靛與洋紅，面板是半透明白玻璃 */
+  --bg: #f5f3fb;
+  --bg-glow-a: rgba(124, 92, 255, .16);
+  --bg-glow-b: rgba(236, 72, 153, .11);
+  --panel: rgba(255, 255, 255, .68);
+  --panel-solid: #ffffff;
+  --sheen: rgba(255, 255, 255, .75);
+  --text: #1c1730;
+  --muted: #5f5879;
+  --line: rgba(83, 58, 150, .16);
+  --accent: #6a3df0;
+  --accent-2: #2d86f5;
+  --ring: rgba(106, 61, 240, .22);
+  --bar: #8b5cf6;
+  --bar-b: #c4b5fd;
+  --track: rgba(83, 58, 150, .16);
+  --label: #2a2442;
+  --halo: rgba(245, 243, 251, .92);
+  --pink: #e83e8c;
+  --pink-label: #b0136a;
+  --soft: rgba(106, 61, 240, .08);
+  --soft-2: rgba(106, 61, 240, .14);
+  --shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 14px 40px -14px rgba(62, 32, 130, .32), 0 2px 6px rgba(62, 32, 130, .06);
+  --r: 16px;
+  --r-sm: 10px;
+  --dur: 180ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --font: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Yu Gothic", "Hiragino Sans", system-ui, sans-serif;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  /* 深色：深夜的觀星台。背景是靛藍到近黑的漸層，節點像會發光的星體 */
+  --bg: #090817;
+  --bg-glow-a: rgba(112, 82, 255, .24);
+  --bg-glow-b: rgba(255, 80, 165, .13);
+  --panel: rgba(20, 17, 42, .62);
+  --panel-solid: #15122b;
+  --sheen: rgba(255, 255, 255, .06);
+  --text: #f3f0ff;
+  --muted: #a9a2c9;
+  --line: rgba(190, 175, 255, .16);
+  --accent: #a595ff;
+  --accent-2: #6fd0ff;
+  --ring: rgba(165, 149, 255, .28);
+  --bar: #8f7bff;
+  --bar-b: #ff7ab8;
+  --track: rgba(190, 175, 255, .18);
+  --label: #efeaff;
+  --halo: rgba(9, 8, 23, .9);
+  --pink: #ff5fa8;
+  --pink-label: #ff9ccb;
+  --soft: rgba(165, 149, 255, .12);
+  --soft-2: rgba(165, 149, 255, .2);
+  --shadow: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 18px 48px -16px rgba(0, 0, 0, .7), 0 2px 8px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background:
+    radial-gradient(1100px 760px at 78% -12%, var(--bg-glow-a), transparent 62%),
+    radial-gradient(900px 700px at -6% 108%, var(--bg-glow-b), transparent 58%),
+    var(--bg);
+  color: var(--text);
+  font: 14px/1.5 var(--font);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+canvas#gl, canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+canvas#gl { z-index: 0; pointer-events: none; }
+canvas#c { z-index: 1; touch-action: none; }
+
+.panel {
+  position: fixed;
+  z-index: 3;
+  background: linear-gradient(180deg, var(--sheen), transparent 46%), var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+#card { left: 16px; top: 16px; padding: 12px 16px 12px; max-width: min(400px, calc(100vw - 100px)); }
+#card h1 { margin: 0; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+#date {
+  font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; letter-spacing: .01em;
+  background: linear-gradient(100deg, var(--accent) 0%, var(--pink) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  width: fit-content;
+}
+#work { font-size: 13px; color: var(--muted); min-height: 2.9em; margin-top: 2px; }
+#work b { color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+#work .a { color: var(--pink-label); font-weight: 600; }
+
+#tools { right: 16px; top: 16px; display: flex; gap: 4px; padding: 5px; border-radius: 14px; z-index: 26; }
+button, select {
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  height: 36px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+button { min-width: 36px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+button:hover, select:hover { border-color: var(--accent); background: var(--soft); }
+button:active { transform: scale(.96); background: var(--soft-2); }
+#tools button { border-color: transparent; }
+#tools button:hover { border-color: var(--line); }
+#tools button[aria-pressed="true"] { background: var(--soft-2); border-color: var(--accent); color: var(--accent); }
+@media (pointer: coarse) { button, select { height: 44px; } button { min-width: 44px; } }
+button[aria-pressed="true"] { border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 0 5px var(--ring); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+:root[data-fx="off"] *, :root[data-fx="off"] *::before, :root[data-fx="off"] *::after { transition: none !important; animation: none !important; }
+svg { display: block; }
+
+#side { right: 16px; top: 68px; bottom: 112px; width: 328px; padding: 12px 14px; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+#side[hidden] { display: none; }
+#side.detail-mode { display: flex; flex-direction: column; overflow: hidden; padding: 14px; }
+#side h2 { margin: 12px 0 6px; font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+#side h2:first-child { margin-top: 0; }
+#rankView[hidden], #detail[hidden] { display: none; }
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rank li { margin: 0; }
+.row { position: relative; width: 100%; height: auto; min-height: 34px; padding: 5px 10px; border: 0; border-radius: 9px; overflow: hidden; justify-content: space-between; text-align: left; font: inherit; }
+.row i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--bar), var(--bar-b)); opacity: .26; z-index: 0; border-radius: 9px; transition: opacity var(--dur) var(--ease); }
+.rank.pink .row i { background: linear-gradient(90deg, var(--pink), color-mix(in srgb, var(--pink) 40%, transparent)); }
+.row span { position: relative; z-index: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row:hover { background: var(--soft); border-color: transparent; }
+.row:hover i { opacity: .4; }
+.rank li.sel .row { background: var(--soft-2); box-shadow: inset 0 0 0 1px var(--accent); }
+.rank .n { font-variant-numeric: tabular-nums; font-weight: 700; overflow: visible; }
+.rank .n small { font-weight: 400; color: var(--muted); }
+
+/* 點選人物後的詳細面板：頭像＋名字 → 統計 → 合作對象／作品紀錄 */
+#detail { display: flex; flex-direction: column; min-height: 0; flex: 1; gap: 12px; }
+.dh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dh .back { height: 32px; padding: 0 12px 0 6px; font-size: 13px; color: var(--muted); border-radius: 999px; }
+.kind { font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 999px; border: 1px solid currentColor; letter-spacing: .04em; }
+.kind.a { color: var(--pink-label); background: color-mix(in srgb, var(--pink) 12%, transparent); }
+.kind.m { color: var(--accent); background: var(--soft); }
+#side .dn { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; color: var(--text); letter-spacing: .01em; text-transform: none; }
+#side .dn.a { color: var(--text); }
+.dn { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.dn .avatar { width: 68px; height: 68px; flex: none; border-radius: 50%; object-fit: cover; border: 2px solid var(--pink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pink) 18%, transparent), 0 8px 24px -6px color-mix(in srgb, var(--pink) 60%, transparent); }
+.dn:not(.a) .avatar { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), 0 8px 24px -6px color-mix(in srgb, var(--accent) 60%, transparent); }
+.dn .dn-name { min-width: 0; }
+.stats { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin: 0; }
+.stats div { padding: 9px 10px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); min-width: 0; }
+.stats dt { font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+.stats dd { margin: 3px 0 0; font-size: 20px; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stats dd small { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 2px; }
+.stats div:last-child dd { font-size: 16px; line-height: 1.55; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
+.seg button { height: 32px; border: 0; border-radius: 9px; font-size: 13px; color: var(--muted); }
+.seg button:hover { background: transparent; color: var(--text); }
+.seg button[aria-selected="true"] { background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 6px 16px -6px var(--accent); }
+.modes { margin: 4px 0 6px; }
+.modes button { height: 32px; min-width: 0; border: 0; border-radius: 9px; font-size: 13px; color: var(--muted); padding: 0 4px; }
+.modes button:hover { background: transparent; color: var(--text); }
+.modes button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 6px 16px -6px var(--accent); }
+.hint { margin: 4px 0 6px; font-size: 12px; line-height: 1.55; color: var(--muted); }
+.chk { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; color: var(--text); cursor: pointer; }
+.chk input { width: 18px; height: 18px; accent-color: var(--accent); }
+#modeBtn { font-weight: 800; font-size: 13px; min-width: 46px; letter-spacing: .04em; }
+.dtool { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.dtool .chips { display: flex; gap: 4px; }
+.dtool button { height: 28px; min-width: 0; padding: 0 12px; font-size: 12px; border-radius: 999px; }
+.dtool button[aria-pressed="true"] { border-color: var(--accent); background: var(--soft-2); color: var(--text); font-weight: 700; }
+.dbody { flex: 1; min-height: 0; overflow: auto; margin: 0 -6px; padding: 0 6px 4px; scroll-padding: 40px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.plist, .wl { list-style: none; margin: 0; padding: 0; }
+.plist { display: grid; gap: 2px; }
+.prow { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; width: 100%; height: auto; min-height: 46px; padding: 7px 10px; border: 0; border-radius: 10px; position: relative; overflow: hidden; text-align: left; font: inherit; justify-content: stretch; align-items: center; }
+.prow i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--bar), var(--bar-b)); opacity: .24; border-radius: 10px; transition: opacity var(--dur) var(--ease); }
+.prow.pk i { background: linear-gradient(90deg, var(--pink), color-mix(in srgb, var(--pink) 35%, transparent)); }
+.prow > span { position: relative; z-index: 1; min-width: 0; }
+.prow .pn { font-weight: 600; overflow-wrap: anywhere; display: flex; align-items: center; gap: 9px; }
+.prow .pn > span:last-child { min-width: 0; }
+.prow .pn img, .prow .pn .avatar-slot { width: 26px; height: 26px; flex: none; border-radius: 50%; }
+.prow .pn img { object-fit: cover; border: 1.5px solid color-mix(in srgb, var(--pink) 70%, transparent); }
+.prow .pn .avatar-slot { visibility: hidden; }
+.prow .pc { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.prow .ps { grid-column: 1 / -1; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.prow:hover { background: var(--soft); border-color: transparent; }
+.prow:hover i { opacity: .38; }
+.yr { position: sticky; top: 0; z-index: 2; margin: 0; padding: 10px 2px 5px; font-size: 12px; font-weight: 800; color: var(--muted); background: var(--panel-solid); letter-spacing: .08em; }
+.yr small { font-weight: 500; margin-left: 6px; letter-spacing: 0; }
+.wl li { display: grid; grid-template-columns: 1fr auto; gap: 1px 10px; padding: 7px 2px; border-bottom: 1px dashed var(--line); }
+.wl b { font-variant-numeric: tabular-nums; font-size: 13px; letter-spacing: .03em; }
+.wl .d { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; align-self: center; }
+.wl .o { grid-column: 1 / -1; color: var(--text); font-size: 12px; opacity: .82; overflow-wrap: anywhere; }
+.more { width: 100%; margin-top: 8px; height: 36px; font-size: 13px; color: var(--muted); border-radius: 999px; }
+.empty-note { padding: 16px 4px; font-size: 13px; color: var(--muted); }
+#empty { left: 50%; top: 45%; transform: translate(-50%, -50%); padding: 14px 18px; color: var(--muted); font-size: 14px; text-align: center; pointer-events: none; }
+#empty[hidden] { display: none; }
+#nogl { left: 50%; top: 45%; transform: translate(-50%, -50%); padding: 16px 20px; color: var(--text); font-size: 14px; text-align: center; max-width: min(420px, calc(100vw - 32px)); }
+#nogl[hidden] { display: none; }
+
+#settings { right: 16px; top: 68px; bottom: 112px; width: 288px; overflow: auto; z-index: 6; font-size: 13px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; transform-origin: 100% 0; }
+#settings[hidden] { display: none; }
+body.side-open #settings { right: 356px; }
+#settings header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 6px; padding: 9px 10px 9px 16px; background: var(--panel-solid); border-bottom: 1px solid var(--line); }
+#settings header b { flex: 1; font-size: 14px; letter-spacing: .04em; }
+#settings header button { height: 32px; min-width: 32px; padding: 0 6px; border-color: transparent; }
+#settings details { border-bottom: 1px solid var(--line); padding: 4px 16px 10px; }
+#settings details:last-child { border-bottom: 0; }
+#settings summary { cursor: pointer; padding: 9px 0; min-height: 38px; font-weight: 700; color: var(--text); letter-spacing: .02em; }
+.sl { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; padding: 5px 0; color: var(--muted); }
+.sl output { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; }
+.sl input { grid-column: 1 / -1; width: 100%; margin: 0; }
+#settings input[type="search"], #settings select { width: 100%; height: 34px; padding: 0 10px; background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 10px; font: inherit; margin: 4px 0; }
+#aList { max-height: 190px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; margin-top: 4px; background: var(--soft); scrollbar-width: thin; }
+#aList label { display: flex; gap: 8px; align-items: center; padding: 3px 0; color: var(--text); cursor: pointer; }
+#aList input { accent-color: var(--accent); }
+#aFind { margin-top: 8px; }
+#aCnt { margin-left: auto; align-self: center; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#aList label[hidden] { display: none; }
+#aList .aka { font-size: 11px; color: var(--muted); }
+#aList .none { padding: 8px 0; font-size: 12px; color: var(--muted); }
+.dn a.ext { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 5px; text-decoration-thickness: 2px; transition: text-decoration-color var(--dur) var(--ease); }
+.dn a.ext:hover { text-decoration-color: var(--accent); }
+.dn a.ext svg { display: inline-block; margin-left: 6px; vertical-align: -2px; opacity: .7; }
+.mini { display: flex; gap: 6px; margin-top: 6px; }
+.mini button { height: 28px; font-size: 12px; border-radius: 999px; }
+
+/* 自訂滑桿：進度會填色，滑鈕有光暈 */
+input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 24px; cursor: pointer; --p: 0%; }
+input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--accent) var(--p), var(--track) var(--p)); }
+input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--track); }
+input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--accent); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 0 0 4px var(--ring), 0 2px 8px rgba(0, 0, 0, .3); transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 0 0 4px var(--ring); }
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.12); }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-shadow: 0 0 0 7px var(--ring), 0 2px 8px rgba(0, 0, 0, .3); }
+@media (pointer: coarse) { input[type="range"] { height: 36px; } }
+
+#legend { left: 16px; bottom: 112px; padding: 10px 14px; font-size: 12px; color: var(--muted); }
+#legend .dots { display: flex; gap: 14px; align-items: center; margin-bottom: 4px; }
+#legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; box-shadow: 0 0 10px currentColor; }
+#legend .ramp { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+#legend canvas { width: 120px; height: 14px; border-radius: 7px; }
+
+#bar { left: 16px; right: 16px; bottom: 16px; padding: 10px 16px; display: grid; gap: 6px; }
+#row { display: flex; align-items: center; gap: 10px; }
+#row #play { min-width: 40px; background: var(--accent); border-color: transparent; color: #fff; box-shadow: 0 8px 20px -8px var(--accent); }
+#row #play:hover { background: var(--accent); filter: brightness(1.1); }
+#timeline { position: relative; flex: 1; min-width: 0; }
+#slider { width: 100%; margin: 0; }
+#ticks, #rcYears { position: relative; height: 16px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.yrs button { position: absolute; top: 0; transform: translateX(-50%); height: 16px; min-width: 14px; padding: 0 3px; border: 0; border-radius: 6px; background: none; color: inherit; font-size: inherit; line-height: 16px; }
+.yrs button:hover, .yrs button:focus-visible { color: var(--accent); background: var(--soft); border: 0; }
+.yrs button:active { transform: translateX(-50%); background: var(--soft-2); }
+.yrs button.on { color: var(--accent); font-weight: 600; }
+.yrs button.mini { min-width: 4px; width: 4px; padding: 0; font-size: 0; z-index: 1; }
+.yrs button.mini::before { content: ""; width: 1px; height: 6px; background: currentColor; opacity: .55; }
+.yrs button.mini:hover::before, .yrs button.mini.on::before { opacity: 1; height: 9px; }
+#count { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; white-space: nowrap; }
+#note { font-size: 12px; color: var(--muted); }
+
+#tip { position: fixed; pointer-events: none; padding: 10px 12px; border-radius: 12px; font-size: 12px; max-width: 300px; z-index: 20; line-height: 1.55; }
+#tip[hidden] { display: none; }
+#tip b { font-size: 14px; }
+
+/* 統計面板：長條圖競賽＋統計卡 */
+#stats { position: fixed; inset: 0; z-index: 25; display: flex; flex-direction: column; gap: 10px; padding-block: max(14px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: radial-gradient(1100px 760px at 78% -12%, var(--bg-glow-a), transparent 62%), radial-gradient(900px 700px at -6% 108%, var(--bg-glow-b), transparent 58%), var(--bg); }
+#stats[hidden], #raceView[hidden], #cardsView[hidden] { display: none; }
+#stats .sh { display: flex; align-items: center; gap: 12px; }
+#stats .sh b { font-size: 18px; }
+#stats .sp { flex: 1; }
+#raceView { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.rtools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rseg button { height: 32px; min-width: 0; border: 0; border-radius: 9px; font-size: 13px; color: var(--muted); padding: 0 12px; }
+.rseg button:hover { background: transparent; color: var(--text); }
+.rseg button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 6px 16px -6px var(--accent); }
+.rtools .rseg { margin: 0; }
+#rcPlay { min-width: 84px; background: var(--accent); border-color: transparent; color: #fff; }
+#rcPlay:hover { background: var(--accent); filter: brightness(1.1); }
+#raceBox { position: relative; flex: 1; min-height: 220px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); overflow: hidden; }
+#race { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rbar { display: grid; gap: 2px; }
+#rcSlider { width: 100%; margin: 0; }
+#rcNote { font-size: 12px; color: var(--muted); }
+#cardsView { flex: 1; min-height: 0; overflow: auto; }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 12px; padding-bottom: 8px; }
+.scard { padding: 14px 16px 12px; display: grid; gap: 8px; align-content: start; min-width: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.scard h3 { margin: 0; font-size: 15px; }
+.scard p { margin: 0; font-size: 12.5px; line-height: 1.65; color: var(--muted); }
+.scard svg { width: 100%; height: auto; display: block; overflow: visible; }
+.scard svg text { font-family: var(--font); font-size: 11px; fill: var(--muted); }
+.scard svg text.t { fill: var(--text); font-size: 12px; }
+
+/* 黑洞轉場（切到 3D／4D）：蓋在畫布上、面板下 */
+#bh { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+#bh[hidden] { display: none; }
+#bh .bh-v { position: absolute; inset: 0; opacity: 0; background: radial-gradient(circle at var(--bx) var(--by), rgba(8, 4, 22, 0) 0, rgba(8, 4, 22, .38) 20%, rgba(5, 2, 14, .94) 78%); }
+#bh .bh-core { position: absolute; left: var(--bx); top: var(--by); width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); opacity: 0; transform: scale(0); }
+#bh .bh-ring { position: absolute; inset: -22%; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 6%, var(--pink) 18%, #ffe3f3 27%, var(--accent-2) 42%, transparent 56% 68%, var(--accent) 84%, transparent 100%); -webkit-mask: radial-gradient(circle, transparent 50%, #000 57%, #000 64%, transparent 71%); mask: radial-gradient(circle, transparent 50%, #000 57%, #000 64%, transparent 71%); filter: blur(1.5px) saturate(1.5); }
+#bh .bh-disc { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #000 0 62%, rgba(0, 0, 0, 0) 74%); box-shadow: 0 0 70px 16px rgba(165, 149, 255, .42), 0 0 160px 40px rgba(255, 95, 168, .22); }
+
+/* 互動導覽：遮罩＋挖洞（box-shadow）＋說明卡 */
+#tourVeil { position: fixed; inset: 0; z-index: 30; }
+#tourVeil[hidden] { display: none; }
+#tourVeil.dim { background: rgba(6, 5, 18, .62); }
+#tourHole { position: fixed; border-radius: 14px; pointer-events: none; box-shadow: 0 0 0 100vmax rgba(6, 5, 18, .62), 0 0 0 2px var(--accent), 0 0 26px 2px var(--ring); transition: left .38s var(--ease), top .38s var(--ease), width .38s var(--ease), height .38s var(--ease); }
+#tourHole.soft { box-shadow: 0 0 0 100vmax rgba(6, 5, 18, .3), 0 0 0 2px var(--accent), 0 0 26px 2px var(--ring); border-radius: 50%; }
+#tourHole[hidden] { display: none; }
+:root[data-fx="off"] #tourHole { transition: none; }
+#tourCard { z-index: 31; width: min(400px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow: auto; padding: 14px 18px 14px; display: grid; gap: 8px; }
+#tourCard.wide { width: min(480px, calc(100vw - 24px)); }
+#tourCard .tn { font-size: 11px; letter-spacing: .1em; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+#tourCard .tn i { flex: 1; height: 3px; border-radius: 3px; background: var(--track); overflow: hidden; }
+#tourCard .tn i::after { content: ""; display: block; height: 100%; width: var(--p, 0%); background: linear-gradient(90deg, var(--accent), var(--pink)); border-radius: 3px; transition: width .35s var(--ease); }
+#tourCard h2 { margin: 0; font-size: 17px; line-height: 1.35; text-wrap: balance; }
+#tourCard .tb { font-size: 13.5px; line-height: 1.7; }
+#tourCard .tb p { margin: 4px 0; }
+#tourCard .tb ul { margin: 4px 0; padding-left: 18px; }
+#tourCard .tb li { margin: 5px 0; }
+#tourCard .tb b { color: var(--accent); font-weight: 650; }
+#tourCard .tb .note { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; }
+#tourCard .tb dl { margin: 4px 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+#tourCard .tb dt { font-weight: 650; color: var(--accent); white-space: nowrap; }
+#tourCard .tb dd { margin: 0; }
+#tourCard .tf { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+#tourCard .tf .sp { flex: 1; }
+#tourCard .tf button.primary { background: var(--accent); border-color: transparent; color: #fff; min-width: 84px; }
+#tourCard .tf button.primary:hover { filter: brightness(1.1); background: var(--accent); }
+#tourCard .tf button.ghost { border-color: transparent; color: var(--muted); }
+#tourCard .tf button[disabled] { opacity: .38; cursor: default; }
+#tourHint { left: 50%; bottom: 128px; transform: translateX(-50%); z-index: 8; padding: 10px 12px 10px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; max-width: calc(100vw - 32px); }
+#tourHint[hidden] { display: none; }
+#tourHint button.primary { background: var(--accent); border-color: transparent; color: #fff; }
+#tourHint button.ghost { border-color: transparent; color: var(--muted); }
+
+@media (max-width: 700px) {
+  #side { left: 16px; right: 16px; width: auto; top: 140px; bottom: 150px; }
+  #settings, body.side-open #settings { left: 16px; right: 16px; width: auto; top: 140px; bottom: 150px; z-index: 6; }
+  #legend { display: none; }
+  /* 手機：標題卡獨佔一整列（日期＋當前作品），工具列放在它下面，面板從 140px 開始 */
+  #card { top: 12px; left: 16px; right: 16px; max-width: none; padding: 8px 14px; display: flex; align-items: baseline; gap: 12px; }
+  #card h1 { display: none; }
+  #date { font-size: 22px; white-space: nowrap; flex: none; }
+  #work { min-height: 0; flex: 1; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tools { top: 72px; }
+  #row { flex-wrap: wrap; row-gap: 4px; }
+  #timeline { order: 3; flex: 1 1 100%; }
+  #count { flex: 1; text-align: right; }
+  #ticks { display: none; }
+  #note { display: none; }
+  body.stats-open #tools { top: 12px; }
+  #stats { padding-top: 70px; }
+}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<canvas id="c" role="img" aria-label="女優與合作男優的關聯圖，依作品日期逐步建立連線。可用右側排行或設定裡的搜尋來選取人物，並在詳細面板查看合作對象與作品紀錄"></canvas>
+
+<div class="panel" id="card">
+  <h1 id="title"></h1>
+  <div id="date">—</div>
+  <div id="work" aria-live="off"></div>
+</div>
+
+<div class="panel" id="tools">
+  <button type="button" id="modeBtn" aria-label="切換檢視模式（目前 2D）" title="切換 2D／3D／4D"><span id="modeTxt">2D</span></button>
+  <button type="button" id="rankBtn" aria-pressed="true" aria-label="顯示或隱藏排行" title="排行">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
+  </button>
+  <button type="button" id="fitBtn" aria-pressed="true" aria-label="自動縮放置中" title="自動縮放置中（雙擊畫面也可恢復）">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+  </button>
+  <button type="button" id="statsBtn" aria-label="統計" title="統計：長條圖競賽與統計卡">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+  </button>
+  <button type="button" id="tourBtn" aria-label="使用導覽" title="使用導覽（怎麼看這張圖）">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8"/><path d="M12 17h.01"/></svg>
+  </button>
+  <button type="button" id="setBtn" aria-pressed="false" aria-label="設定" title="設定">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+  </button>
+  <button type="button" id="themeBtn" aria-label="切換深色或淺色" title="切換深色／淺色">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</div>
+
+<aside class="panel" id="side" aria-label="排行與詳細資料">
+  <div id="rankView">
+    <h2>女優（作品數／合作男優人數）</h2>
+    <ol class="rank pink" id="rankA"></ol>
+    <h2>男優（累計合作作品數）</h2>
+    <ol class="rank" id="rankM"></ol>
+  </div>
+  <div id="detail" hidden></div>
+</aside>
+
+<aside class="panel" id="settings" aria-label="設定" hidden>
+  <header>
+    <b>設定</b>
+    <button type="button" id="setReset" aria-label="全部重設" title="全部重設">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+    <button type="button" id="setClose" aria-label="關閉設定" title="關閉">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </header>
+  <details open><summary>檢視模式</summary>
+    <div class="seg modes" role="group" aria-label="檢視模式" style="grid-template-columns: repeat(3, 1fr)">
+      <button type="button" data-mode="2d">2D 平面</button>
+      <button type="button" data-mode="3d">3D 球體</button>
+      <button type="button" data-mode="4d">4D 時間</button>
+    </div>
+    <p class="hint" id="modeHint"></p>
+    <label class="chk"><input type="checkbox" id="egoChk"> 選取時以他為原點排列（距離＝合作次數）</label>
+    <label class="chk"><input type="checkbox" id="egoHideChk"> 原點排列時隱藏無關節點（不勾＝淡出到外圍）</label>
+    <div id="viewExtra"><div id="g-view"></div><label class="chk"><input type="checkbox" id="spinChk"> 自動旋轉</label></div>
+  </details>
+  <details open><summary>強度設定</summary><div id="g-strength"></div></details>
+  <details open><summary>外觀設定</summary><div id="g-look"></div><label class="chk"><input type="checkbox" id="avatarChk"> 顯示大頭貼</label><label class="chk"><input type="checkbox" id="fxChk"> 動畫特效（開場、切換轉場、漣漪）</label><label class="chk"><input type="checkbox" id="holeChk"> 切到 3D／4D 時的黑洞轉場（需開啟動畫特效）</label></details>
+  <details><summary>顯示過濾</summary>
+    <input type="search" id="setSearch" list="nameList" placeholder="搜尋人名（選到會跳過去）" aria-label="搜尋人名">
+    <datalist id="nameList"></datalist>
+    <div id="g-filter"></div>
+    <input type="search" id="aFind" placeholder="模糊搜尋女優（漢字／假名／別名皆可）" aria-label="模糊搜尋女優" autocomplete="off">
+    <div class="mini"><button type="button" id="aAll">女優全選</button><button type="button" id="aNone">全不選</button><span id="aCnt" aria-live="polite"></span></div>
+    <div id="aList"></div>
+  </details>
+  <details open><summary>播放</summary>
+    <label class="sl"><span>播放速度</span><span></span>
+      <select id="speed" aria-label="播放速度">
+        <option value="0.5">0.5×</option>
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+        <option value="10">10×</option>
+        <option value="30">30×</option>
+        <option value="100">100×</option>
+      </select>
+    </label>
+  </details>
+</aside>
+
+<section id="stats" hidden aria-label="統計">
+  <header class="sh">
+    <b>統計</b>
+    <div class="seg" role="tablist" aria-label="統計分頁" style="grid-template-columns: repeat(2, auto)">
+      <button type="button" role="tab" data-tab="race" aria-selected="true">長條圖競賽</button>
+      <button type="button" role="tab" data-tab="cards" aria-selected="false">統計卡</button>
+    </div>
+  </header>
+  <div id="raceView">
+    <div class="rtools">
+      <div class="seg rseg" role="group" aria-label="競賽主題" style="grid-template-columns: repeat(3, auto)">
+        <button type="button" data-metric="actress" aria-pressed="true">女優累計作品</button>
+        <button type="button" data-metric="male" aria-pressed="false">男優累計合作</button>
+        <button type="button" data-metric="pair" aria-pressed="false">最強 CP</button>
+      </div>
+      <span class="sp"></span>
+      <button type="button" id="rcRestart" aria-label="重播" title="重播">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+      <button type="button" id="rcPlay" aria-label="播放" title="播放／暫停（空白鍵）"></button>
+      <select id="rcSpeed" aria-label="競賽速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+    </div>
+    <div id="raceBox"><canvas id="race" role="img" aria-label="長條圖競賽：依月份累計，前 12 名隨時間換位"></canvas></div>
+    <div class="rbar">
+      <input type="range" id="rcSlider" min="0" value="0" step="1" aria-label="競賽時間（月）">
+      <div id="rcYears" class="yrs" role="group" aria-label="跳到指定年份"></div>
+      <div id="rcNote"></div>
+    </div>
+    <div class="sr-only" id="rcLive" role="status" aria-live="polite"></div>
+  </div>
+  <div id="cardsView" hidden><div class="cgrid" id="cardGrid"></div></div>
+</section>
+
+<div class="panel" id="legend">
+  <div class="dots">
+    <span><i class="dot" id="dotA"></i>女優</span>
+    <span><i class="dot" id="dotM"></i>男優</span>
+  </div>
+  <div>線條：合作越多越粗、顏色越深</div>
+  <div class="ramp"><span>1 次</span><canvas id="ramp" width="240" height="28" aria-hidden="true"></canvas><span id="maxLabel"></span></div>
+</div>
+
+<div class="panel" id="bar">
+  <div id="row">
+    <button type="button" id="restart" aria-label="回到開頭" title="回到開頭">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+    <button type="button" id="play" aria-label="播放" title="播放／暫停（空白鍵）"></button>
+    <div id="timeline">
+      <input type="range" id="slider" min="0" value="0" step="1" aria-label="時間軸（依作品日期）">
+      <div id="ticks" class="yrs" role="group" aria-label="跳到指定年份"></div>
+    </div>
+    <span id="count"></span>
+  </div>
+  <div id="note"></div>
+</div>
+
+<div class="panel" id="empty" hidden>目前的過濾條件下沒有可顯示的節點<br>請到「設定 → 顯示過濾」放寬條件</div>
+<div class="panel" id="nogl" hidden>這個瀏覽器無法使用 WebGL，已改用基本繪圖（沒有光暈與頭像），功能不變。</div>
+<div class="sr-only" id="live" role="status" aria-live="polite"></div>
+<div class="panel" id="tip" hidden></div>
+
+<script>/*__VENDOR_THREE__*/</script>
+<script>/*__VENDOR_ANIME__*/</script>
+<script>
+(() => {
+  const DATA = /*__DATA__*/null;
+  const $ = (id) => document.getElementById(id);
+  const root = document.documentElement;
+  const works = DATA.works;
+  const N = works.length;
+  const sysReduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let reduce = sysReduce; // 系統要求減少動態，或使用者關掉「動畫特效」時為 true（見 applyFx）
+  const FONT = '"Microsoft JhengHei","Yu Gothic","Noto Sans JP","Noto Sans TC",sans-serif';
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // ── 主題：沒手動選過就跟隨系統，手動切換後記住 ──
+  const css = (name) => getComputedStyle(root).getPropertyValue(name).trim();
+  const darkMQ = matchMedia("(prefers-color-scheme: dark)");
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem("graph-theme"); } catch (e) { /* 無儲存也能用 */ }
+  root.dataset.theme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : darkMQ.matches ? "dark" : "light";
+  const dark = () => root.dataset.theme === "dark";
+  const hexRgb = (c) => { const m = /#([0-9a-f]{6})/i.exec(c); const v = m ? parseInt(m[1], 16) : 0x888888; return [((v >> 16) & 255) / 255, ((v >> 8) & 255) / 255, (v & 255) / 255]; };
+  const TH = {}; // 目前主題的顏色（讀一次，切換時才重讀）
+  function readTheme() {
+    for (const k of ["bg", "label", "accent", "pink", "pink-label", "muted", "line", "halo"]) TH[k] = css("--" + k);
+    TH.dark = dark(); TH.pinkRGB = hexRgb(TH.pink);
+  }
+  readTheme();
+  let onTheme = () => {};
+  $("themeBtn").addEventListener("click", () => {
+    root.dataset.theme = dark() ? "light" : "dark"; savedTheme = root.dataset.theme;
+    try { localStorage.setItem("graph-theme", savedTheme); } catch (e) { /* ignore */ }
+    onTheme();
+  });
+  if (darkMQ.addEventListener) darkMQ.addEventListener("change", (e) => { if (!savedTheme) { root.dataset.theme = e.matches ? "dark" : "light"; onTheme(); } });
+
+  // ── 動效工具：anime.js（沒載入、或使用者要求減少動態時，全部直接跳到結果） ──
+  const A = typeof anime !== "undefined" && anime.animate ? anime : null;
+  let motion = !!A && !sysReduce;
+  const tween = (o, key, to, dur, ease, delay = 0) => { if (!motion) { o[key] = to; return; } A.animate(o, { [key]: to, duration: dur, ease, delay }); };
+  const fillRange = (el) => el.style.setProperty("--p", ((el.value - el.min) / ((el.max - el.min) || 1)) * 100 + "%");
+  function staggerIn(els, max = 14) {
+    if (!motion) return;
+    const list = [...els].slice(0, max);
+    if (list.length) A.animate(list, { opacity: [0, 1], translateY: [8, 0], duration: 360, ease: "outCubic", delay: A.stagger(18) });
+  }
+  function countUp(el) {
+    const t = el.firstChild;
+    if (!motion || !t || t.nodeType !== 3 || !/^\d+$/.test(t.nodeValue)) return;
+    const to = +t.nodeValue, o = { v: 0 };
+    t.nodeValue = "0";
+    A.animate(o, { v: to, duration: 700, ease: "outExpo", onUpdate: () => { t.nodeValue = String(Math.round(o.v)); }, onComplete: () => { t.nodeValue = String(to); } });
+  }
+  // 點選人物後的詳細面板進場：標題列、統計、分頁依序滑入，頭像彈出，數字跳動
+  function enterDetail(box) {
+    if (!motion) return;
+    A.animate(box.querySelectorAll(".dh,.dn,.stats,.seg,.dtool"), { opacity: [0, 1], translateY: [10, 0], duration: 420, ease: "outCubic", delay: A.stagger(45) });
+    const av = box.querySelector(".avatar");
+    if (av) A.animate(av, { scale: [0.5, 1], duration: 640, ease: "outBack", delay: 60 });
+    for (const dd of box.querySelectorAll(".stats dd")) countUp(dd);
+    staggerIn(box.querySelectorAll(".prow,.wl li"));
+  }
+
+  // ── 設定：滑桿定義、預設值、記住上次的值 ──
+  const SPEC = [
+    { g: "g-strength", k: "center", label: "節點集中強度", min: 0, max: 0.2, step: 0.005, def: 0.03, dp: 3, sim: true },
+    { g: "g-strength", k: "repel", label: "節點間的互斥強度", min: 0, max: 4, step: 0.1, def: 1, dp: 1, sim: true },
+    { g: "g-strength", k: "linkK", label: "節點間的連結強度", min: 0, max: 1.5, step: 0.01, def: 0.45, dp: 2, sim: true },
+    { g: "g-strength", k: "dist", label: "連接線距離", min: 40, max: 500, step: 10, def: 170, dp: 0, sim: true },
+    { g: "g-look", k: "nodeSize", label: "節點尺寸", min: 0.4, max: 2.5, step: 0.05, def: 1, dp: 2, sim: true, radius: true },
+    { g: "g-look", k: "edgeW", label: "連接線寬度", min: 0.2, max: 3, step: 0.05, def: 1, dp: 2 },
+    { g: "g-look", k: "textSize", label: "文字大小", min: 0.6, max: 2, step: 0.05, def: 1, dp: 2 },
+    { g: "g-look", k: "textAlpha", label: "文字透明度", min: 0, max: 1, step: 0.05, def: 1, dp: 2 },
+    { g: "g-look", k: "labelMax", label: "男優名稱顯示上限", min: 0, max: 500, step: 10, def: 220, dp: 0 },
+    { g: "g-view", k: "timeH", label: "4D 時間軸長度", min: 200, max: 1800, step: 50, def: 900, dp: 0 },
+    { g: "g-filter", k: "minLink", label: "連線最少合作次數", min: 1, max: 10, step: 1, def: 1, dp: 0, recount: true },
+    { g: "g-filter", k: "minMale", label: "男優最少出現作品數", min: 1, max: 10, step: 1, def: 1, dp: 0, recount: true },
+  ];
+  const S = { speed: "1", hidden: [], mode: "2d", autoSpin: false, fx: true, showAvatars: true, ego: true, egoHide: false };
+  for (const sp of SPEC) S[sp.k] = sp.def;
+  try { Object.assign(S, JSON.parse(localStorage.getItem("graph-settings") || "{}")); } catch (e) { /* 無儲存也能用 */ }
+  const saveSettings = () => { try { localStorage.setItem("graph-settings", JSON.stringify(S)); } catch (e) { /* ignore */ } };
+  const hiddenA = new Set(S.hidden);
+  let mode = ["2d", "3d", "4d"].includes(S.mode) ? S.mode : "2d"; // 2d 平面｜3d 力導向球雲｜4d 地面是關係圖、高度是首次合作時間
+
+  // ── 圖結構：女優（粉）、男優（藍紫）、女優–男優連線（累計合作次數） ──
+  const nodes = [];
+  const byKey = new Map();
+  const linkMap = new Map();
+  const links = [];
+  const AV = DATA.avatars || {};
+  const avatarImages = {};
+  for (const [name, src] of Object.entries(AV)) { const img = new Image(); img.src = src; avatarImages[name] = img; }
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function node(kind, name) {
+    const key = kind + ":" + name;
+    let n = byKey.get(key);
+    if (!n) {
+      n = { kind, name, avatar: avatarImages[name], x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null, count: 0, shown: 0, alive: false, pulse: 0, dim: 0, ang: rnd() * Math.PI * 2, z: 0, vz: 0, dx: 0, dy: 0, dz: 0, di: 0, ft: 0.5, sx: 0, sy: 0, sk: 1, sd: 0, first: null, last: null, links: [], nbrs: new Set(), deg: 0, r: 8, perActress: null, hv: 0, sel: 0, rip: 0, mt: 1, ox: 0, oy: 0, oz: 0, pr: 0, pa: 0 };
+      byKey.set(key, n);
+      nodes.push(n);
+    }
+    return n;
+  }
+  const workLinks = [];
+  for (const w of works) {
+    const touched = [];
+    for (const a of w.actresses) for (const m of w.males) {
+      const A = node("A", a), M = node("M", m);
+      const key = a + "\u0001" + m;
+      let l = linkMap.get(key);
+      if (!l) { l = { a: A, m: M, count: 0, shown: 0, pulse: 0, dim: 0 }; linkMap.set(key, l); links.push(l); A.links.push(l); M.links.push(l); A.nbrs.add(M); M.nbrs.add(A); }
+      touched.push(l);
+    }
+    workLinks.push(touched);
+  }
+  const finalEdge = new Map();
+  for (const t of workLinks) for (const l of t) finalEdge.set(l, (finalEdge.get(l) || 0) + 1);
+  const MAXC = Math.max(1, ...finalEdge.values());
+  // 靜態的首次／最後出現日（整份資料，不隨時間滑桿變動）：以選取者為原點排列時當時間座標
+  works.forEach((w, i) => {
+    for (const a of w.actresses) { const A = byKey.get("A:" + a); A.first0 = A.first0 || w.date; A.last0 = w.date; }
+    for (const m of w.males) { const M = byKey.get("M:" + m); M.first0 = M.first0 || w.date; M.last0 = w.date; }
+    for (const l of workLinks[i]) l.first0 = l.first0 || w.date;
+  });
+
+  const actresses = DATA.actresses.map((a) => a.name);
+  $("title").textContent = actresses.length <= 2 ? `${actresses.join("、")} × 合作男優` : `${actresses.length} 位女優 × 合作男優`;
+  $("maxLabel").textContent = `${MAXC} 次`;
+  $("note").textContent = `共 ${DATA.total_works} 部作品，其中 ${DATA.with_males} 部查得到男優資料；次數是下限。`;
+  $("slider").max = N;
+
+  const T0 = Date.parse(works[0].date), TSPAN = Math.max(1, Date.parse(works[N - 1].date) - T0);
+  const baseR = (n, c = n.count) => (n.kind === "A" ? Math.min(40, 14 + 3.2 * Math.sqrt(c)) : 5 + 2.6 * Math.sqrt(c)) * S.nodeSize;
+  // 目標半徑。選了人之後改用「那個人的視角」：對方節點的大小＝跟選取者合作的次數，無關的節點縮小退到背景
+  // 視角模式的尺度：最常合作的對象 = 最大，其餘依次數等比例縮小（差距要一眼看得出來，所以不用開根號）
+  const PERSP_MIN = 4, PERSP_MAX = 78;
+  let focusMax = 1;
+  const linkOf = (f, n) => linkMap.get(f.kind === "A" ? f.name + "\u0001" + n.name : n.name + "\u0001" + f.name);
+  const calcFocusMax = () => {
+    focusMax = 1;
+    const f = selected;
+    if (!f || !f.alive) return;
+    for (const l of f.links) if (l.vis && l.count > focusMax) focusMax = l.count;
+  };
+  const radius = (n) => {
+    const f = selected;
+    if (f && f.alive && n !== f) {
+      if (f.nbrs.has(n)) {
+        const l = linkOf(f, n);
+        if (l && l.vis) return (PERSP_MIN + (PERSP_MAX - PERSP_MIN) * Math.pow(l.count / focusMax, 0.9)) * S.nodeSize;
+      }
+      return baseR(n) * 0.35;
+    }
+    return baseR(n);
+  };
+  const retarget = () => { calcFocusMax(); for (const n of nodes) n.rt = radius(n); };
+  let idx = 0;
+  let aliveList = [];
+  let needReheat = 0;
+  function recount(k) {
+    for (const n of nodes) { n.count = 0; n.first = n.last = null; n.deg = 0; n.perActress = null; n.codes = []; n.wl = []; }
+    for (const l of links) l.count = 0;
+    for (let i = 0; i < k; i++) {
+      const w = works[i];
+      for (const t of workLinks[i]) t.count++;
+      for (const a of w.actresses) { const A = byKey.get("A:" + a); A.count++; A.first = A.first || w.date; A.last = w.date; A.wl.push(w); }
+      for (const m of w.males) {
+        const M = byKey.get("M:" + m);
+        M.count++; M.first = M.first || w.date; M.last = w.date; M.codes.push(w.code); M.wl.push(w);
+        M.perActress = M.perActress || {};
+        for (const a of w.actresses) M.perActress[a] = (M.perActress[a] || 0) + 1;
+      }
+    }
+    for (const l of links) { l.vis = l.count >= S.minLink && !hiddenA.has(l.a.name); if (l.vis) { l.a.deg++; l.m.deg++; } }
+    calcFocusMax();
+    for (const n of nodes) {
+      const should = n.kind === "A" ? n.count > 0 && !hiddenA.has(n.name) : n.count >= S.minMale && n.deg > 0;
+      if (should && !n.alive) { spawn(n); needReheat = 0.5; }
+      if (!should) n.alive = false;
+      n.rt = radius(n);
+      n.ft = n.first ? (Date.parse(n.first) - T0) / TSPAN : 0.5;
+      if (!n.rv) { n.r = n.rt; n.rv = 1; }
+    }
+    aliveList = nodes.filter((n) => n.alive);
+    $("empty").hidden = aliveList.length > 0 || k === 0;
+  }
+  // 新節點從已出現的鄰居旁邊冒出來，沒有鄰居就從中心附近
+  function spawn(n) {
+    n.alive = true; n.vx = n.vy = 0;
+    const nb = [...n.nbrs].find((x) => x.alive);
+    const d = nb ? 60 + rnd() * 40 : 120 + rnd() * 120;
+    n.x = (nb ? nb.x : 0) + Math.cos(n.ang) * d;
+    n.y = (nb ? nb.y : 0) + Math.sin(n.ang) * d;
+    n.z = (nb ? nb.z : 0) + (rnd() - 0.5) * d; n.vz = 0;
+  }
+
+  // ── WebGL 渲染層（Three.js）：節點與連線用實例化 quad，由 shader 負責光暈、頭像與抗鋸齒。
+  //    座標是 CPU 算好的螢幕像素（見 project()），所以 2D／3D／4D 共用同一條管線；文字與 4D 導引仍畫在上層 2D canvas ──
+  const AT_COLS = 20, AT_ROWS = 20, AT_CELL = 96;
+  const GL = (() => {
+    if (typeof THREE === "undefined") return null;
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ canvas: $("gl"), alpha: true, antialias: false, premultipliedAlpha: true }); } catch (e) { return null; }
+    renderer.setClearColor(0x000000, 0);
+    const scene = new THREE.Scene(), ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const V2 = (x, y) => new THREE.Vector2(x, y), V3 = () => new THREE.Vector3();
+
+    // 頭像圖集：每格 96px，節點用格號取樣
+    const atlas = document.createElement("canvas");
+    atlas.width = AT_COLS * AT_CELL; atlas.height = AT_ROWS * AT_CELL;
+    const actx = atlas.getContext("2d");
+    const tex = new THREE.CanvasTexture(atlas);
+    tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter;
+    const slot = new Map();
+    let dirty = false;
+    const addAvatar = (name, img) => {
+      if (slot.has(name) || slot.size >= AT_COLS * AT_ROWS) return;
+      const i = slot.size;
+      actx.drawImage(img, (i % AT_COLS) * AT_CELL, Math.floor(i / AT_COLS) * AT_CELL, AT_CELL, AT_CELL);
+      slot.set(name, i); dirty = true;
+    };
+
+    const U = {
+      uRes: { value: V2(1, 1) }, uDark: { value: 0 }, uGlowA: { value: 0.3 }, uTime: { value: 0 },
+      uPink: { value: V3() }, uAccent: { value: V3() }, uBg: { value: V3() },
+      uAtlas: { value: tex }, uGrid: { value: V2(AT_COLS, AT_ROWS) },
+    };
+    const blend = (m) => {
+      m.transparent = true; m.depthTest = false; m.depthWrite = false; m.side = THREE.DoubleSide;
+      m.blending = THREE.CustomBlending;
+      m.blendSrc = THREE.OneFactor; m.blendDst = THREE.OneMinusSrcAlphaFactor;
+      m.blendSrcAlpha = THREE.OneFactor; m.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
+      return m;
+    };
+    const NDC = "gl_Position = vec4(px.x / uRes.x * 2.0 - 1.0, 1.0 - px.y / uRes.y * 2.0, 0.0, 1.0);";
+
+    // 星塵：深色是淡淡的星點，淺色幾乎看不見；隨平移／旋轉做一點視差
+    const sg = new THREE.BufferGeometry(), sp = new Float32Array(240 * 3);
+    for (let i = 0; i < sp.length; i++) sp[i] = Math.random();
+    sg.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+    const starU = { uRes: U.uRes, uOff: { value: V2(0, 0) }, uTime: { value: 0 }, uPx: { value: 1 }, uCol: { value: V3() }, uK: { value: 1 } };
+    const stars = new THREE.Points(sg, blend(new THREE.ShaderMaterial({
+      uniforms: starU,
+      vertexShader: `
+        uniform vec2 uRes; uniform vec2 uOff; uniform float uTime; uniform float uPx;
+        varying float vA;
+        void main() {
+          vec2 p = fract(position.xy + uOff * (0.015 + 0.05 * position.z) / uRes);
+          vec2 px = p * uRes;
+          ${NDC}
+          gl_PointSize = (1.0 + 2.2 * position.z) * uPx;
+          vA = (0.3 + 0.7 * position.z) * (0.75 + 0.25 * sin(uTime * (0.6 + position.z * 1.4) + position.x * 40.0));
+        }`,
+      fragmentShader: `
+        uniform vec3 uCol; uniform float uK; varying float vA;
+        void main() {
+          float d = length(gl_PointCoord - 0.5) * 2.0;
+          float a = (1.0 - smoothstep(0.35, 1.0, d)) * vA * uK;
+          gl_FragColor = vec4(uCol * a, a);
+        }`,
+    })));
+    stars.frustumCulled = false; stars.renderOrder = 0;
+    scene.add(stars);
+
+    const mkGeo = (verts, cap, names) => {
+      const g = new THREE.InstancedBufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(verts), 3));
+      g.setIndex([0, 1, 2, 0, 2, 3]);
+      const arr = {};
+      for (const nm of names) {
+        const a = new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, cap) * 4), 4);
+        a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(nm, a); arr[nm] = a;
+      }
+      g.instanceCount = 0;
+      return { g, arr };
+    };
+    const flush = (geo, count) => {
+      geo.g.instanceCount = count;
+      if (!count) return;
+      for (const a of Object.values(geo.arr)) { a.clearUpdateRanges(); a.addUpdateRange(0, count * 4); a.needsUpdate = true; }
+    };
+
+    // 連線：一條帶狀 quad，寬度是像素；女優端帶一點粉色漸層，脈衝時底下多一層粉色光
+    const edgeGeo = mkGeo([0, -1, 0, 1, -1, 0, 1, 1, 0, 0, 1, 0], links.length, ["eA", "eB", "eC"]);
+    const edges = new THREE.Mesh(edgeGeo.g, blend(new THREE.ShaderMaterial({
+      uniforms: U,
+      vertexShader: `
+        attribute vec4 eA; attribute vec4 eB; attribute vec4 eC;
+        uniform vec2 uRes;
+        varying float vAlong; varying float vAcross; varying float vHalf; varying vec4 vB; varying vec4 vC;
+        void main() {
+          vec2 p0 = eA.xy, p1 = eA.zw, dir = p1 - p0;
+          float len = max(length(dir), 0.001); dir /= len;
+          vec2 nrm = vec2(-dir.y, dir.x);
+          float half_ = eB.x * 0.5 + 1.5 + eB.z * 5.0 * eB.w;
+          vec2 px = mix(p0, p1, position.x) + nrm * position.y * half_;
+          ${NDC}
+          vAlong = position.x; vAcross = position.y * half_; vHalf = eB.x * 0.5; vB = eB; vC = eC;
+        }`,
+      fragmentShader: `
+        uniform vec3 uPink;
+        varying float vAlong; varying float vAcross; varying float vHalf; varying vec4 vB; varying vec4 vC;
+        void main() {
+          float a = abs(vAcross);
+          float core = (1.0 - smoothstep(vHalf - 0.7, vHalf + 0.7, a)) * vB.y;
+          vec3 col = mix(vC.rgb, uPink, vC.a * (1.0 - vAlong));
+          float pw = vHalf + 4.0 * vB.w * vB.z;
+          float ua = (1.0 - smoothstep(pw - 1.0, pw + 1.0, a)) * vB.z * 0.5;
+          vec4 o = vec4(uPink * ua, ua);
+          o = o * (1.0 - core) + vec4(col * core, core);
+          gl_FragColor = o;
+        }`,
+    })));
+    edges.frustumCulled = false; edges.renderOrder = 1;
+    scene.add(edges);
+
+    // 節點：光暈＋圓盤（假球體高光）＋頭像＋脈衝環／焦點環
+    const nodeGeo = mkGeo([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], nodes.length, ["iA", "iB", "iC", "iD"]);
+    const nodeMesh = new THREE.Mesh(nodeGeo.g, blend(new THREE.ShaderMaterial({
+      uniforms: U,
+      vertexShader: `
+        attribute vec4 iA; attribute vec4 iB; attribute vec4 iC; attribute vec4 iD;
+        uniform vec2 uRes;
+        varying vec2 vP; varying float vH; varying vec4 vA; varying vec4 vB; varying vec4 vC; varying vec4 vD;
+        void main() {
+          float h = iA.z * 1.9 + 22.0 * iD.x + 6.0;
+          vec2 px = iA.xy + position.xy * h;
+          ${NDC}
+          vP = position.xy * h; vH = h; vA = iA; vB = iB; vC = iC; vD = iD;
+        }`,
+      fragmentShader: `
+        uniform sampler2D uAtlas; uniform vec2 uGrid; uniform float uDark; uniform float uGlowA; uniform float uTime;
+        uniform vec3 uPink; uniform vec3 uAccent;
+        varying vec2 vP; varying float vH; varying vec4 vA; varying vec4 vB; varying vec4 vC; varying vec4 vD;
+        void main() {
+          // iB.y：≥0 頭像格號；-1 沒有頭像（畫玻璃剪影）；≤-2 一般圓點。iD.y：被選取者（原點）的玻璃環強度
+          float r = vA.z, isA = vB.x, av = vB.y, ring = vB.z, f = clamp(vB.w, 0.0, 1.0), sk = vD.x, anc = vD.y;
+          float d = length(vP);
+          vec3 base = vC.rgb;
+          float fh = f * (1.0 - anc);
+          float bw = mix((r < 14.0 ? 1.0 : 1.7) + 1.1 * fh, 3.0, anc);
+          float aa = 0.8;
+          float disc = 1.0 - smoothstep(r - aa, r + aa, d);
+          float inner = 1.0 - smoothstep(r - bw - aa, r - bw + aa, d);
+          vec2 q = vP / max(r, 1.0);
+          vec2 dir = vP / max(d, 0.001);
+          vec3 nrm = vec3(q, sqrt(max(0.0, 1.0 - dot(q, q))));
+          float diff = dot(nrm, normalize(vec3(-0.45, -0.6, 0.65)));
+          vec3 body = base * (0.82 + 0.3 * diff) + vec3(1.0) * pow(max(diff, 0.0), 12.0) * mix(0.10, 0.22, uDark);
+          float avOn = step(0.0, av) * step(5.0, r);
+          // 沒有頭像的大圓：霧面玻璃底＋人形剪影，不再是一顆純色圓點
+          float silOn = step(-1.5, av) * step(av, -0.5) * step(9.0, r);
+          float e = 1.2 / max(r, 1.0);
+          vec3 frost = base * (0.66 + 0.34 * (0.5 - 0.5 * q.y)) + vec3(1.0) * mix(0.05, 0.1, uDark);
+          float head = 1.0 - smoothstep(0.27 - e, 0.27 + e, length(q - vec2(0.0, -0.22)));
+          float shoulder = 1.0 - smoothstep(1.0 - 2.0 * e, 1.0 + 2.0 * e, length((q - vec2(0.0, 0.84)) / vec2(0.68, 0.54)));
+          body = mix(body, mix(frost, mix(vec3(1.0), base, 0.22), max(head, shoulder) * 0.86), silOn);
+          float ri = max(r - bw, 1.0);
+          vec2 u = vP / ri * 0.5 + 0.5;
+          float idx = max(av, 0.0), col = mod(idx, uGrid.x), row = floor(idx / uGrid.x);
+          vec2 uv = vec2((col + 0.02 + 0.96 * clamp(u.x, 0.0, 1.0)) / uGrid.x, 1.0 - (row + 0.02 + 0.96 * clamp(u.y, 0.0, 1.0)) / uGrid.y);
+          vec4 t = texture2D(uAtlas, uv);
+          body = mix(body, t.rgb, t.a * avOn * (1.0 - smoothstep(ri - aa, ri + aa, d)));
+          // 內緣 1px 高光（左上亮、右下淡），原點再加內陰影
+          float lit = 0.5 + 0.5 * dot(dir, vec2(-0.6, -0.8));
+          float band = smoothstep(r - 2.6, r - 1.2, d) * (1.0 - smoothstep(r - 1.2, r - 0.2, d)) * step(7.0, r);
+          body += vec3(1.0) * band * lit * mix(0.28, 0.4, uDark) * (1.0 - anc);
+          body *= 1.0 - anc * 0.4 * smoothstep(r - bw - 6.0, r - bw, d);
+          vec3 rim = mix(vec3(1.0), mix(base, vec3(1.0), 0.5), uDark);
+          vec3 glass = mix(uAccent * 0.8, vec3(1.0), lit * lit);
+          vec3 discCol = mix(mix(mix(rim, uAccent, fh), glass, anc), body, inner);
+          float gr = isA > 0.5 ? r * 0.7 + 6.0 : r * 0.4 + 3.0;
+          float outside = max(d - r, 0.0);
+          float glow = exp(-outside / gr * 2.4) * (isA > 0.5 ? 0.34 : 0.14) + fh * 0.4 * exp(-outside / (r * 0.5 + 6.0) * 2.0)
+                     + anc * 0.24 * exp(-outside / (r * 0.9 + 10.0) * 2.0);
+          glow *= (1.0 - disc) * (1.0 - smoothstep(vH * 0.72, vH, d));
+          vec3 gcol = mix(isA > 0.5 ? uPink : base, uAccent, fh * 0.6);
+          gcol = mix(gcol, uPink, anc);
+          float rr = r + (14.0 * (1.0 - ring) + 3.0) * sk;
+          float rm = (1.0 - smoothstep(0.0, 1.3, abs(d - rr) - 1.0)) * step(0.02, ring) * ring;
+          vec3 rc = isA > 0.5 ? uPink : uAccent;
+          vec4 o = vec4(gcol * glow, glow * uGlowA);
+          // 外圈：1px 細環＋刻度，錐形漸層（accent→粉）慢速旋轉
+          float ang = atan(vP.y, vP.x), w = 0.5 + 0.5 * cos(ang - uTime * 0.35);
+          vec3 oc = mix(uAccent, uPink, w);
+          float o1 = (1.0 - smoothstep(0.0, 1.1, abs(d - (r + 10.0)) - 0.45)) * (0.22 + 0.6 * w * w) * anc;
+          float seg = fract(ang * 24.0 / 6.2831853 + 0.5) - 0.5;
+          float tk = (1.0 - smoothstep(0.35, 1.0, abs(seg) * 0.2618 * d)) * (1.0 - smoothstep(1.4, 2.2, abs(d - (r + 15.0)))) * 0.45 * (0.4 + 0.6 * w) * anc;
+          float oa = max(o1, tk);
+          o = o * (1.0 - oa) + vec4(oc * oa, oa);
+          o = o * (1.0 - rm) + vec4(rc * rm, rm);
+          o = o * (1.0 - disc) + vec4(discCol * disc, disc);
+          gl_FragColor = o * vA.w;
+        }`,
+    })));
+    nodeMesh.frustumCulled = false; nodeMesh.renderOrder = 2;
+    scene.add(nodeMesh);
+
+    return {
+      renderer, slot, addAvatar, node: nodeGeo.arr, edge: edgeGeo.arr, stars: starU,
+      resize(w, h, dpr) {
+        renderer.setPixelRatio(Math.min(dpr, 2)); renderer.setSize(w, h, false);
+        U.uRes.value.set(w, h); starU.uPx.value = Math.min(dpr, 2);
+      },
+      setTheme() {
+        U.uDark.value = TH.dark ? 1 : 0; U.uGlowA.value = TH.dark ? 0.22 : 0.85;
+        U.uPink.value.fromArray(hexRgb(TH.pink)); U.uAccent.value.fromArray(hexRgb(TH.accent)); U.uBg.value.fromArray(hexRgb(TH.bg));
+        starU.uCol.value.fromArray(TH.dark ? [0.82, 0.8, 1] : hexRgb(TH.accent)); starU.uK.value = TH.dark ? 0.9 : 0.16;
+      },
+      draw(nc, ec, time, ox, oy) {
+        if (dirty) { tex.needsUpdate = true; dirty = false; }
+        flush(nodeGeo, nc); flush(edgeGeo, ec);
+        starU.uTime.value = time; U.uTime.value = time; starU.uOff.value.set(ox, oy);
+        renderer.render(scene, ortho);
+      },
+    };
+  })();
+  if (GL) for (const [name, img] of Object.entries(avatarImages)) img.decode().then(() => GL.addAvatar(name, img)).catch(() => { /* 壞圖就沒有頭像 */ });
+  if (!GL) { $("nogl").hidden = false; setTimeout(() => { $("nogl").hidden = true; }, 7000); }
+
+  // ── 畫布 ──
+  const canvas = $("c");
+  const ctx = canvas.getContext("2d");
+  let W = 0, H = 0, DPR = 1;
+  const view = { x: 0, y: 0, zoom: 1, tz: 1, vx: 0, vy: 0 };
+  let anchor = null; // 縮放錨點：螢幕座標 + 世界座標
+  function resize() {
+    DPR = window.devicePixelRatio || 1;
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    if (GL) GL.resize(W, H, DPR);
+  }
+  addEventListener("resize", resize);
+  resize();
+
+  // 顏色：越多越深。淺色＝淡紫→深靛；深色＝暗淡→明亮飽和
+  const HN = [0, 8, 4];
+  const hslRgb = (h, s, l, o) => {
+    s /= 100; l /= 100;
+    const a = s * Math.min(l, 1 - l);
+    for (let i = 0; i < 3; i++) { const k = (HN[i] + h / 30) % 12; o[i] = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }
+    return o;
+  };
+  const edgeHSL = (c) => {
+    const t = Math.min(1, Math.max(0, (c - 1) / Math.max(1, MAXC - 1)));
+    return TH.dark ? [262, 35 + 45 * t, 46 + 28 * t, 0.5 + 0.5 * t] : [258, 32 + 50 * t, 76 - 56 * t, 1];
+  };
+  const edgeColor = (c) => { const [h, sa, l, a] = edgeHSL(c); return `hsla(${h}, ${sa}%, ${l}%, ${a})`; };
+  const edgeRGBA = (c, o) => { const [h, sa, l, a] = edgeHSL(c); hslRgb(h, sa, l, o); o[3] = a; return o; };
+  const edgeWidth = (c) => (1 + 2.1 * Math.sqrt(c)) * S.edgeW;
+  const pink = () => TH.pink;
+
+  function paintStatic() {
+    const r = $("ramp"), g = r.getContext("2d");
+    g.clearRect(0, 0, r.width, r.height);
+    for (let i = 0; i < r.width; i++) { g.fillStyle = edgeColor(1 + (MAXC - 1) * (i / (r.width - 1))); g.fillRect(i, 0, 1, r.height); }
+    $("dotA").style.background = pink();
+    $("dotM").style.background = edgeColor(Math.max(2, MAXC * 0.5));
+    $("dotA").style.color = pink(); $("dotM").style.color = edgeColor(Math.max(2, MAXC * 0.5));
+  }
+  onTheme = () => { readTheme(); paintStatic(); if (GL) GL.setTheme(); };
+  onTheme();
+
+  // ── 力導向佈局（仿 Obsidian / d3-force）：所有節點都能動，連線會拉動鄰居，放開後保留速度滑行並慢慢冷卻 ──
+  let alpha = 1, alphaTarget = 0;
+  const ALPHA_DECAY = 1 - Math.pow(0.001, 1 / 260);
+  const VEL_DECAY = 0.6;
+  const CELL0 = 280;
+  function physicsStep() {
+    alpha += (alphaTarget - alpha) * ALPHA_DECAY;
+    if (needReheat) { alpha = Math.max(alpha, needReheat); needReheat = 0; }
+    if (alpha < 0.0015 && alphaTarget === 0) return;
+    const L = aliveList, D3 = mode === "3d"; // 只有 3D 球體模式才有第三軸的力；2D 與 4D 的版面是平面力導向
+    // 排斥力：格子索引，只算附近的（規模大時不會變 O(n²)）
+    const grid = new Map();
+    // 連接線距離也會等比放大／縮小排斥的力道與範圍：圖很擠時，只改連線靜止長度幾乎看不出差別
+    const kd = S.dist / 170, rep = S.repel * kd * kd, CELL = CELL0 * Math.max(1, kd);
+    const cx = (n) => Math.floor(n.x / CELL), cy = (n) => Math.floor(n.y / CELL), cz = (n) => (D3 ? Math.floor(n.z / CELL) : 0);
+    const key = (a, b, c) => (a * 100003 + b) * 1009 + c;
+    for (const n of L) { const k = key(cx(n), cy(n), cz(n)); let arr = grid.get(k); if (!arr) grid.set(k, (arr = [])); arr.push(n); }
+    const zr = D3 ? 1 : 0;
+    for (const n of L) {
+      const gx = cx(n), gy = cy(n), gz = cz(n), sn = (n.kind === "A" ? 520 : 150) * rep;
+      for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) for (let oz = -zr; oz <= zr; oz++) {
+        const arr = grid.get(key(gx + ox, gy + oy, gz + oz));
+        if (!arr) continue;
+        for (const m of arr) {
+          if (m === n) continue;
+          let dx = n.x - m.x, dy = n.y - m.y, dz = D3 ? n.z - m.z : 0, d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 > CELL * CELL) continue;
+          if (d2 < 1) { dx = rnd() - 0.5; dy = rnd() - 0.5; dz = D3 ? rnd() - 0.5 : 0; d2 = 1; }
+          const d = Math.sqrt(d2), sm = (m.kind === "A" ? 520 : 150) * rep;
+          const f = ((sn + sm) / 2) * alpha / Math.max(d, 12);
+          n.vx += (dx / d) * f; n.vy += (dy / d) * f; if (D3) n.vz += (dz / d) * f;
+          const minD = n.r + m.r + 6;
+          if (d < minD) { const push = (minD - d) * 0.35; n.vx += (dx / d) * push; n.vy += (dy / d) * push; if (D3) n.vz += (dz / d) * push; }
+        }
+      }
+    }
+    // 連線：合作越多越近；度數大的一端被拉得少（d3 的作法）
+    for (const l of links) {
+      if (!l.vis) continue;
+      const s = l.a, t = l.m;
+      let dx = t.x + t.vx - s.x - s.vx, dy = t.y + t.vy - s.y - s.vy, dz = D3 ? t.z + t.vz - s.z - s.vz : 0;
+      let d = Math.hypot(dx, dy, dz) || 1e-6;
+      const dist = Math.max(20, S.dist * (0.45 + 0.9 / Math.sqrt(l.count)) + s.r * 0.6); // 合作越多越近，只合作一次的被推遠
+      const k = ((d - dist) / d) * alpha * (S.linkK / Math.min(s.deg, t.deg)) * Math.min(2.5, 0.6 + 0.4 * Math.sqrt(l.count));
+      dx *= k; dy *= k; dz *= k;
+      const b = s.deg / (s.deg + t.deg);
+      t.vx -= dx * b; t.vy -= dy * b; s.vx += dx * (1 - b); s.vy += dy * (1 - b);
+      if (D3) { t.vz -= dz * b; s.vz += dz * (1 - b); }
+    }
+    // 中心引力（弱）與積分
+    for (const n of L) {
+      n.vx -= n.x * S.center * alpha; n.vy -= n.y * S.center * alpha;
+      if (D3) n.vz -= n.z * S.center * alpha;
+      if (n.fx != null) { n.x = n.fx; n.y = n.fy; n.vx = n.vy = n.vz = 0; continue; }
+      n.vx *= VEL_DECAY; n.vy *= VEL_DECAY; if (D3) n.vz *= VEL_DECAY;
+      const sp = Math.hypot(n.vx, n.vy, D3 ? n.vz : 0);
+      if (sp > 60) { n.vx *= 60 / sp; n.vy *= 60 / sp; if (D3) n.vz *= 60 / sp; }
+      n.x += n.vx; n.y += n.vy; if (D3) n.z += n.vz;
+    }
+  }
+
+  // ── 互動狀態與回饋：hover、選取用 anime.js 做彈性放大，選取時沿合作次數向鄰居擴散漣漪 ──
+  let hover = null, selected = null, follow = null;
+  function setHover(n) {
+    if (n === hover) return;
+    const old = hover;
+    hover = n;
+    if (old) tween(old, "hv", 0, 240, "outQuad");
+    if (n) tween(n, "hv", 1, 170, "outQuad");
+  }
+  function ripple(n) {
+    if (!motion) return;
+    const nb = n.links.filter((l) => l.vis).sort((a, b) => b.count - a.count).slice(0, 24).map((l) => (l.a === n ? l.m : l.a));
+    n.rip = 0; A.animate(n, { rip: [0, 1], duration: 900, ease: "outExpo" });
+    nb.forEach((o, i) => { o.rip = 0; A.animate(o, { rip: [0, 1], duration: 800, ease: "outExpo", delay: 90 + i * 30 }); });
+  }
+  // 切換 2D／3D／4D：節點從目前位置依序（由中心往外）緩動到新版面
+  let modeTw = null;
+  function startTransition() {
+    const list = [];
+    for (const n of nodes) if (n.alive && n.di) { n.ox = n.dx; n.oy = n.dy; n.oz = n.dz; n.mt = 0; list.push(n); }
+    if (!motion || !list.length) { for (const n of list) n.mt = 1; return; }
+    list.sort((p, q) => Math.hypot(p.x, p.y) - Math.hypot(q.x, q.y));
+    if (modeTw && modeTw.pause) modeTw.pause();
+    modeTw = A.animate(list, { mt: 1, duration: 950, ease: "outExpo", delay: A.stagger(0.35) });
+  }
+  // 開場：整張圖從中心展開，連線稍後淡入，面板依序滑入；點一下、按鍵或滾輪可跳過
+  function startIntro() {
+    if (!motion || /nointro/.test(location.hash)) return;
+    intro.t = 0; intro.on = true;
+    const panels = [...document.querySelectorAll("#card,#tools,#side,#legend,#bar")];
+    for (const p of panels) p.style.opacity = "0";
+    const tw = A.animate(intro, { t: 1, duration: 2200, ease: "outCubic", onComplete: () => { intro.on = false; intro.t = 1; } });
+    A.animate(panels, { opacity: [0, 1], translateY: [14, 0], duration: 700, ease: "outCubic", delay: A.stagger(70, { start: 250 }) });
+    setTimeout(() => { for (const p of panels) p.style.opacity = ""; }, 2600);
+    const skip = () => { if (!intro.on) return; if (tw.pause) tw.pause(); intro.on = false; intro.t = 1; };
+    for (const ev of ["pointerdown", "keydown", "wheel"]) addEventListener(ev, skip, { once: true, passive: true });
+  }
+
+  // ── 3D／4D：自己做透視投影（不用外部函式庫、維持單一離線檔），由遠到近繪製 ──
+  const cam = { tp: null, yaw: -0.6, pitch: 0.42, px: 0, py: 0, pz: 0, yv: 0, pv: 0, R: 600, cy: 1, sy: 0, cp: 1, sp: 0 };
+  const FOCAL = 1500, tmpP = { sx: 0, sy: 0, sk: 1, sd: 0 };
+  const prepCam = () => { cam.cy = Math.cos(cam.yaw); cam.sy = Math.sin(cam.yaw); cam.cp = Math.cos(cam.pitch); cam.sp = Math.sin(cam.pitch); };
+  function proj(o, x, y, z) {
+    x -= cam.px; y -= cam.py; z -= cam.pz;
+    const x1 = x * cam.cy + z * cam.sy, z1 = -x * cam.sy + z * cam.cy;
+    const y2 = y * cam.cp - z1 * cam.sp, z2 = y * cam.sp + z1 * cam.cp;
+    const k = Math.min(3, FOCAL / Math.max(300, FOCAL + z2));
+    o.sx = W / 2 + view.x + x1 * k * view.zoom; o.sy = H / 2 + view.y + y2 * k * view.zoom; o.sk = k * view.zoom; o.sd = z2;
+  }
+  // ── 以選取者為原點的排列：距離＝契合度（合作次數越多越近，對數刻度），4D 的 X 軸＝首次合作日（左早右晚）。
+  //    目標座標是獨立的一層（ego.pos，直接是顯示座標），物理座標不動，取消選取就滑回去 ──
+  const ego = { on: false, anchor: null, pos: new Map(), keep: new Set(), orbits: [], cmax: 1, dmin: 0, dmax: 0, xmax: 0, t0: 0, span: 1, sig: "" };
+  const egoActive = () => !!(selected && selected.alive && S.ego !== false);
+  const GOLD = Math.PI * (3 - Math.sqrt(5));
+  const egoDist = (c, cmax, dmin, dmax) => dmax - ((dmax - dmin) * Math.log(c)) / Math.log(Math.max(cmax, 2));
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  function computeEgo() {
+    const f = selected;
+    ego.pos.clear(); ego.keep.clear(); ego.orbits = [];
+    ego.on = egoActive(); ego.anchor = ego.on ? f : null;
+    if (!ego.on) return;
+    const ps = f.links.filter((l) => l.vis).map((l) => ({ n: l.a === f ? l.m : l.a, c: l.count, t: l.first0 }));
+    ps.sort((a, b) => b.c - a.c || a.t.localeCompare(b.t) || a.n.name.localeCompare(b.n.name, "ja"));
+    const cmax = ps.length ? ps[0].c : 1;
+    const is3 = mode === "3d", is4 = mode === "4d", fi = is3 ? [0, 1, 2] : is4 ? [0, 2] : [0, 1], free = fi.length; // fi：可移動的座標分量（4D 的 Y 軸是時間，固定）
+    const dmax = 2.6 * S.dist;
+    const dmin = Math.min(dmax * 0.6, Math.max(0.4 * S.dist, Math.max(26, f.rt) + (ps.length ? ps[0].n.rt : 0) + 14)); // 最近的一圈不能蓋到原點
+    const t0 = Date.parse(f.first0), span = Math.max(1, Date.parse(f.last0) - t0), xmax = 0.45 * S.timeH;
+    Object.assign(ego, { cmax, dmin, dmax, xmax, t0, span });
+    const n = ps.length;
+    let stride = Math.max(1, Math.round(n * 0.618));
+    while (n > 1 && gcd(stride, n) !== 1) stride++;
+    const pts = ps.map((p, i) => {
+      const d = egoDist(p.c, cmax, dmin, dmax);
+      // 4D：X＝首次合作日；為了讓「距離＝契合度」始終成立，X 不超過距離的 92%，其餘距離留給與時間軸的垂直距離
+      const fx = is4 ? Math.min((xmax * (Date.parse(p.t) - t0)) / span, 0.92 * d) : 0;
+      const R = is4 ? Math.sqrt(d * d - fx * fx) : d;
+      let u;
+      if (is3) { const k = (i * stride) % n, y = 1 - (2 * (k + 0.5)) / n, rr = Math.sqrt(Math.max(0, 1 - y * y)); u = [rr * Math.cos(k * GOLD), y, rr * Math.sin(k * GOLD)]; }
+      else u = [Math.cos(i * GOLD), Math.sin(i * GOLD)];
+      return { n: p.n, d, fx, R, r: p.n.rt, u };
+    });
+    const posOf = (p) => (is3 ? [p.R * p.u[0], p.R * p.u[1], p.R * p.u[2]] : is4 ? [p.R * p.u[0], -p.fx, p.R * p.u[1]] : [p.R * p.u[0], p.R * p.u[1], 0]);
+    const P = pts.map(posOf);
+    // 同一圈的圓會互相蓋住：只沿圈（切線方向）把重疊的推開，半徑（＝契合度）不變
+    for (let it = 0; it < 28; it++) {
+      let any = false;
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+        const a = pts[i], b = pts[j], need = a.r + b.r + 4;
+        const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1], dz = P[i][2] - P[j][2];
+        if (Math.abs(dx) > need || Math.abs(dy) > need || Math.abs(dz) > need) continue;
+        const dd = Math.hypot(dx, dy, dz);
+        if (dd >= need) continue;
+        any = true;
+        const dir = dd > 1e-3 ? [dx / dd, dy / dd, dz / dd] : [Math.cos(i), Math.sin(i), 0], push = (need - dd) / 2;
+        for (const [q, s] of [[a, 1], [b, -1]]) {
+          const ix = q === a ? i : j, np = [];
+          for (let c = 0; c < free; c++) np.push(P[ix][fi[c]] + dir[fi[c]] * push * s);
+          const len = Math.hypot(...np);
+          if (len < 1e-6) continue;
+          for (let c = 0; c < free; c++) q.u[c] = np[c] / len;
+          P[ix] = posOf(q);
+        }
+      }
+      if (!any) break;
+    }
+    ego.pos.set(f, [0, 0, 0]); ego.keep.add(f);
+    pts.forEach((p, i) => { ego.pos.set(p.n, P[i]); ego.keep.add(p.n); });
+    // 沒有跟他合作的節點：推到最外圍一圈（淡出模式才看得到；隱藏模式會直接淡掉）
+    const rest = aliveList.filter((m) => !ego.keep.has(m)).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ja"));
+    const R0 = dmax * 1.22 + (ps.length ? ps[0].n.rt : 0);
+    rest.forEach((m, k) => {
+      const rr = Math.sqrt(R0 * R0 + (k * 520) / Math.PI), a = k * GOLD;
+      if (is3) { const y = 1 - (2 * (k + 0.5)) / rest.length, s = Math.sqrt(Math.max(0, 1 - y * y)), R = R0 * 1.12; ego.pos.set(m, [R * s * Math.cos(a), R * y, R * s * Math.sin(a)]); }
+      else if (is4) ego.pos.set(m, [rr * Math.cos(a), -xmax * Math.min(1, Math.max(0, (Date.parse(m.first0) - t0) / span)), rr * Math.sin(a)]);
+      else ego.pos.set(m, [rr * Math.cos(a), rr * Math.sin(a), 0]);
+    });
+    for (const c of [1, 2, 5, 10, 20, 50, 100, 200, 500]) if (c <= cmax) ego.orbits.push({ c, d: egoDist(c, cmax, dmin, dmax) });
+  }
+  // 選取者、模式、資料或相關設定變動時才重算
+  function syncEgo() {
+    const on = egoActive();
+    const sig = on ? [selected.name, idx, mode, S.dist, S.timeH, S.nodeSize, S.minLink, S.minMale, hiddenA.size].join("|") : "";
+    if (sig !== ego.sig || on !== ego.on) { ego.sig = sig; computeEgo(); }
+  }
+  const egoGone = (n) => ego.on && S.egoHide && !ego.keep.has(n);
+  // 顯示用座標往目標緩動：2D＝(x,y,0)；3D＝(x,y,z)；4D＝X 是首次出現日、其餘兩軸是平面圖；選取時改用 ego 排列。切換時節點會滑過去
+  function updateDisplay(snap) {
+    const k = reduce || snap ? 1 : 0.14;
+    for (const n of nodes) {
+      if (!n.alive && n.shown < 0.02) { n.di = 0; continue; }
+      let tx = n.x, ty = n.y, tz = 0;
+      const e = ego.on ? ego.pos.get(n) : null;
+      if (e) { tx = e[0]; ty = e[1]; tz = e[2]; }
+      else if (ego.on) { tx = n.dx; ty = n.dy; tz = n.dz; }
+      else if (mode === "3d") tz = n.z;
+      else if (mode === "4d") { ty = -(n.ft - 0.5) * S.timeH; tz = n.y; }
+      if (!n.di) { if (!n.alive) continue; n.dx = tx; n.dy = ty; n.dz = tz; n.di = 1; n.mt = 1; continue; }
+      if (n.mt < 1) { n.dx = n.ox + (tx - n.ox) * n.mt; n.dy = n.oy + (ty - n.oy) * n.mt; n.dz = n.oz + (tz - n.oz) * n.mt; } // 模式切換中
+      else if (mode === "2d" && !ego.on) { n.dx = tx; n.dy = ty; n.dz = tz; }
+      else { n.dx += (tx - n.dx) * k; n.dy += (ty - n.dy) * k; n.dz += (tz - n.dz) * k; }
+    }
+  }
+  const dAlpha = (sd) => 1 - 0.55 * Math.min(1, Math.max(0, (sd + cam.R) / (2 * cam.R)));
+  // 4D 的時間刻度：垂直的時間軸（下早上晚）＋每隔幾年一個垂直於軸的水平圓環。
+  // 選取時軸從原點（他的第一部作品）延伸到他的最後一部；沒選人時是整份資料的絕對年份
+  function drawTimeGuides(muted, line) {
+    const t0 = ego.on ? ego.t0 : T0, span = ego.on ? ego.span : TSPAN;
+    const x0 = ego.on ? 0 : -S.timeH / 2, x1 = ego.on ? ego.xmax : S.timeH / 2; // 軸上的時間座標：x0 最早（最下），x1 最晚（最上）
+    const y0 = new Date(t0).getUTCFullYear(), y1 = new Date(t0 + span).getUTCFullYear();
+    let step = Math.max(1, Math.ceil((y1 - y0) / 7));
+    let G = 120;
+    if (ego.on) G = ego.dmax * 0.9;
+    else { for (const n of aliveList) G = Math.max(G, Math.hypot(n.x, n.y)); G *= 1.08; }
+    ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = line; ctx.fillStyle = muted; ctx.font = `600 12px ${FONT}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    const xAt = (t) => x0 + Math.min(1, Math.max(0, (t - t0) / span)) * (x1 - x0); // 時間座標，畫的時候放在 Y 軸（由下往上）
+    ctx.globalAlpha = 0.95; ctx.lineWidth = 2; ctx.strokeStyle = TH.muted;
+    ctx.beginPath(); proj(tmpP, 0, -x0, 0); ctx.moveTo(tmpP.sx, tmpP.sy); const ax = tmpP.sx, ay = tmpP.sy; proj(tmpP, 0, -x1, 0); ctx.lineTo(tmpP.sx, tmpP.sy); ctx.stroke();
+    ctx.lineWidth = 1; ctx.strokeStyle = line;
+    step = Math.max(step, Math.ceil((y1 - y0) / Math.max(2, Math.floor(Math.hypot(tmpP.sx - ax, tmpP.sy - ay) / 34)))); // 軸很短時年份標籤依像素間距疏化
+    const mark = (x, label) => {
+      ctx.globalAlpha = 0.8; ctx.strokeStyle = muted; ctx.beginPath();
+      for (let i = 0; i <= 48; i++) {
+        const a = (i / 48) * Math.PI * 2;
+        proj(tmpP, G * Math.cos(a), -x, G * Math.sin(a));
+        if (i === 0) ctx.moveTo(tmpP.sx, tmpP.sy); else ctx.lineTo(tmpP.sx, tmpP.sy);
+      }
+      ctx.stroke();
+      proj(tmpP, G, -x, 0); ctx.globalAlpha = 0.95; ctx.fillText(label, tmpP.sx + 6, tmpP.sy);
+    };
+    // 軸上每一年一個小橫刻度，沒標字的年份也看得出高度
+    ctx.globalAlpha = 0.9; ctx.strokeStyle = muted; ctx.beginPath();
+    for (let y = y0 + 1; y <= y1; y++) { const x = xAt(Date.UTC(y, 0, 1)); proj(tmpP, -9, -x, 0); ctx.moveTo(tmpP.sx, tmpP.sy); proj(tmpP, 9, -x, 0); ctx.lineTo(tmpP.sx, tmpP.sy); }
+    ctx.stroke();
+    // 指到的節點：垂直虛線連到中軸同高度，高度（時間）一眼可讀
+    if (hover && hover.shown >= 0.02) { ctx.setLineDash([3, 4]); ctx.globalAlpha = 0.85; ctx.strokeStyle = TH.accent; ctx.beginPath(); ctx.moveTo(hover.sx, hover.sy); proj(tmpP, 0, hover.dy, 0); ctx.lineTo(tmpP.sx, tmpP.sy); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.strokeStyle = line;
+    if (ego.on) mark(x0, String(y0));
+    for (let y = ego.on ? y0 + step : Math.ceil((y0 + 1) / step) * step; y <= y1; y += step) mark(xAt(Date.UTC(y, 0, 1)), String(y));
+    ctx.restore();
+  }
+  // 軌道刻度（2D／3D）：以原點為圓心的同心虛線圈，每圈標示合作次數；3D 取螢幕上的圓代表球殼
+  function drawOrbits() {
+    const f = ego.anchor;
+    if (!f || f.shown < 0.02) return;
+    ctx.save();
+    ctx.lineWidth = 1; ctx.setLineDash([2, 6]); ctx.strokeStyle = TH.muted; ctx.fillStyle = TH.muted; ctx.font = `600 10.5px ${FONT}`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    const pills = [];
+    ego.orbits.forEach((o, i) => {
+      const rad = o.d * f.sk;
+      if (rad < f.pr + 12) return;
+      ctx.globalAlpha = 0.5 * f.sel * f.pa;
+      ctx.beginPath(); ctx.arc(f.sx, f.sy, rad, 0, 7); ctx.stroke();
+      const a = -0.5 - i * 0.34;
+      pills.push({ x: f.sx + rad * Math.cos(a), y: f.sy + rad * Math.sin(a), t: `×${o.c}` });
+    });
+    ctx.setLineDash([]);
+    for (const p of pills) {
+      const w = ctx.measureText(p.t).width + 12;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(p.x - w / 2, p.y - 9, w, 18, 9); else ctx.rect(p.x - w / 2, p.y - 9, w, 18);
+      ctx.globalAlpha = 0.85 * f.sel * f.pa; ctx.fillStyle = TH.bg; ctx.fill();
+      ctx.globalAlpha = f.sel * f.pa; ctx.strokeStyle = TH.line; ctx.stroke();
+      ctx.fillStyle = TH.muted; ctx.fillText(p.t, p.x, p.y + 0.5);
+    }
+    ctx.restore();
+  }
+  // ── 繪製：先把節點投影成螢幕座標（2D 與 3D／4D 同一條管線），GPU 畫節點與連線，上層 canvas 畫 4D 導引與文字 ──
+  const intro = { t: 1, on: false };
+  const off = (n) => n.sx < -80 || n.sx > W + 80 || n.sy < -80 || n.sy > H + 80;
+  function project() {
+    const flat = mode === "2d";
+    if (!flat) prepCam();
+    const cx = W / 2 + view.x, cy = H / 2 + view.y, z = view.zoom;
+    const s = intro.on ? 0.04 + 0.96 * intro.t : 1; // 開場：整張圖從中心展開
+    for (const n of nodes) {
+      if (n.shown < 0.02) continue;
+      if (flat) { n.sx = cx + n.dx * z; n.sy = cy + n.dy * z; n.sk = z; n.sd = 0; }
+      else proj(n, n.dx, n.dy, n.dz);
+      if (s < 1) { n.sx = cx + (n.sx - cx) * s; n.sy = cy + (n.sy - cy) * s; n.sk *= s; }
+    }
+  }
+  // 螢幕空間點選：2D 取最近、3D／4D 取最前面的
+  function pick(ev) {
+    const flat = mode === "2d";
+    let best = null, bd = 1e9;
+    for (const n of aliveList) {
+      if (n.shown < 0.3) continue;
+      const d = Math.hypot(ev.clientX - n.sx, ev.clientY - n.sy) - n.r * n.sk;
+      if (d > 6) continue;
+      if (flat ? d < bd : !best || n.sd < best.sd) { best = n; bd = d; }
+    }
+    return best;
+  }
+  const perf = { ms: 0, av: 0 };
+  const tmpC = [0, 0, 0, 1];
+  function paint() {
+    const t0 = performance.now();
+    const flat = mode === "2d";
+    project();
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const vis = [];
+    for (const n of nodes) if (n.shown >= 0.02 && !off(n)) vis.push(n);
+    if (!flat) vis.sort((p, q) => q.sd - p.sd); // 遠的先畫
+    const si = selected ? vis.indexOf(selected) : -1;
+    if (si >= 0) vis.push(vis.splice(si, 1)[0]); // 原點永遠畫在最上面，不被前排的夥伴蓋住
+    const ia = intro.on ? Math.min(1, intro.t * 3) : 1;
+    const ie = intro.on ? Math.max(0, Math.min(1, (intro.t - 0.3) / 0.7)) : 1;
+    for (const n of vis) {
+      const k = Math.min(1, n.shown * 2);
+      n.pr = n.r * n.sk * (reduce ? 1 : Math.min(1, 0.4 + 0.6 * k)) * (1 + 0.14 * n.hv + 0.1 * n.sel);
+      if (n.sel > 0) n.pr = Math.max(n.pr, 26 * Math.max(0.6, Math.min(n.sk, 1.2)) * n.sel); // 原點至少要大到看得清頭像
+      n.pa = (1 - 0.8 * n.dim) * k * (flat ? 1 : dAlpha(n.sd)) * ia;
+    }
+    if (mode === "4d") drawTimeGuides(TH.muted, TH.line);
+    else if (ego.on) drawOrbits();
+
+    if (GL) {
+      const { eA, eB, eC } = GL.edge, { iA, iB, iC, iD } = GL.node;
+      let ec = 0;
+      for (const l of links) {
+        if (l.shown < 0.02) continue;
+        const a = l.a, m = l.m;
+        if (a.shown < 0.02 || m.shown < 0.02 || (off(a) && off(m))) continue;
+        const kk = (a.sk + m.sk) / 2, da = flat ? 1 : dAlpha((a.sd + m.sd) / 2);
+        const c = edgeRGBA(l.shown, tmpC), i = ec * 4;
+        eA.array[i] = a.sx; eA.array[i + 1] = a.sy; eA.array[i + 2] = m.sx; eA.array[i + 3] = m.sy;
+        eB.array[i] = Math.max(0.6, edgeWidth(l.shown) * kk);
+        const hot = a === selected || m === selected; // 原點—夥伴的連線加粗、加強粉色漸層
+        if (hot) eB.array[i] *= 1.3;
+        eB.array[i + 1] = c[3] * (1 - 0.95 * l.dim) * da * ie;
+        eB.array[i + 2] = reduce ? 0 : l.pulse; eB.array[i + 3] = kk;
+        eC.array[i] = c[0]; eC.array[i + 1] = c[1]; eC.array[i + 2] = c[2]; eC.array[i + 3] = (hot ? 0.6 : TH.dark ? 0.3 : 0.4) * (1 - l.dim);
+        ec++;
+      }
+      let nc = 0, avDrawn = 0;
+      for (const n of vis) {
+        const i = nc * 4, A = n.kind === "A";
+        const c = A ? TH.pinkRGB : edgeRGBA(Math.max(1, Math.min(MAXC, n.count)), tmpC);
+        const ripple = n.rip > 0 && n.rip < 1 ? 1 - n.rip : 0;
+        iA.array[i] = n.sx; iA.array[i + 1] = n.sy; iA.array[i + 2] = n.pr; iA.array[i + 3] = n.pa;
+        iB.array[i] = A ? 1 : 0;
+        iB.array[i + 1] = S.showAvatars && n.pr >= 6 && GL.slot.has(n.name) ? GL.slot.get(n.name) : S.showAvatars && n.pr >= 9 ? -1 : -2;
+        if (iB.array[i + 1] >= 0) avDrawn++;
+        iB.array[i + 2] = reduce ? 0 : Math.max(n.pulse, ripple);
+        iB.array[i + 3] = Math.max(n.hv, n.sel);
+        iC.array[i] = c[0]; iC.array[i + 1] = c[1]; iC.array[i + 2] = c[2]; iC.array[i + 3] = 1;
+        iD.array[i] = n.sk; iD.array[i + 1] = n.sel; iD.array[i + 2] = iD.array[i + 3] = 0;
+        nc++;
+      }
+      perf.av = avDrawn;
+      GL.draw(nc, ec, reduce ? 0 : performance.now() / 1000, view.x + (flat ? 0 : cam.yaw * 500), view.y + (flat ? 0 : cam.pitch * 300));
+    } else {
+      // 沒有 WebGL：用最陽春的圓與線頂著（沒有頭像與光暈，功能不變）
+      ctx.lineCap = "round";
+      for (const l of links) {
+        const a = l.a, m = l.m;
+        if (l.shown < 0.02 || a.shown < 0.02 || m.shown < 0.02) continue;
+        const kk = (a.sk + m.sk) / 2;
+        ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(m.sx, m.sy);
+        ctx.globalAlpha = (1 - 0.88 * l.dim) * (flat ? 1 : dAlpha((a.sd + m.sd) / 2)) * ia;
+        ctx.strokeStyle = edgeColor(l.shown); ctx.lineWidth = Math.max(0.5, edgeWidth(l.shown) * kk); ctx.stroke();
+      }
+      for (const n of vis) {
+        ctx.globalAlpha = n.pa;
+        ctx.beginPath(); ctx.arc(n.sx, n.sy, n.pr, 0, 7);
+        ctx.fillStyle = n.kind === "A" ? TH.pink : edgeColor(Math.max(1, Math.min(MAXC, n.count))); ctx.fill();
+        ctx.lineWidth = n === hover || n === selected ? 3 : 1.5; ctx.strokeStyle = n === hover || n === selected ? TH.accent : TH.bg; ctx.stroke();
+      }
+    }
+
+    // 文字標籤：依重要度排序，與已放置的標籤重疊就略過（焦點與女優一定顯示）
+    const labelFade = Math.min(1, Math.max(0, (view.zoom - (flat ? 0.35 : 0.3)) / 0.4));
+    const placed = [];
+    // 原點的名字：頭像下方的小卡片（名字＋作品數／夥伴數），不與其他標籤擠在一起
+    const card = selected && selected.shown >= 0.02 && !off(selected) && selected.sel > 0.05 ? selected : null;
+    if (card) {
+      const nm = card.name, sub = `作品 ${card.count}・合作 ${card.links.filter((l) => l.vis).length} 位`;
+      const fs = 14 * S.textSize, fs2 = 11 * S.textSize;
+      ctx.textAlign = "left"; ctx.textBaseline = "top";
+      ctx.font = `700 ${fs}px ${FONT}`; const w1 = ctx.measureText(nm).width;
+      ctx.font = `500 ${fs2}px ${FONT}`; const w2 = ctx.measureText(sub).width;
+      const padX = 12, padY = 7, w = Math.max(w1, w2) + padX * 2, h = fs + fs2 + padY * 2 + 3;
+      const x = Math.max(8, Math.min(W - w - 8, card.sx - w / 2)), y = card.sy + card.pr + 20;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, 10); else ctx.rect(x, y, w, h);
+      ctx.globalAlpha = card.pa * card.sel * 0.82; ctx.fillStyle = TH.bg; ctx.fill();
+      ctx.globalAlpha = card.pa * card.sel; ctx.lineWidth = 1; ctx.strokeStyle = TH.line; ctx.stroke();
+      ctx.fillStyle = card.kind === "A" ? TH["pink-label"] : TH.label;
+      ctx.font = `700 ${fs}px ${FONT}`; ctx.fillText(nm, x + padX, y + padY);
+      ctx.fillStyle = TH.muted; ctx.font = `500 ${fs2}px ${FONT}`; ctx.fillText(sub, x + padX, y + padY + fs + 3);
+      placed.push({ x: x + w / 2, y, w, h });
+    }
+    const cands = [];
+    for (const n of vis) {
+      const focus = n === hover || n === selected;
+      if (card && n === card) continue;
+      if (n.dim > 0.5 && !focus) continue; // 退到背景的節點不標名字
+      if (n.kind === "A" || focus || n.count >= 2 || (n.dim === 0 && labelFade > 0.6)) cands.push({ n, focus });
+    }
+    cands.sort((p, q) => (q.focus - p.focus) || ((q.n.kind === "A") - (p.n.kind === "A")) || q.n.count - p.n.count);
+    ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.lineWidth = 3; ctx.lineJoin = "round";
+    let drawn = 0;
+    for (const { n, focus } of cands) {
+      const base = (n.kind === "A" ? 14 + Math.min(12, 1.3 * Math.sqrt(n.count)) : 11 + Math.min(10, 1.7 * Math.sqrt(n.count))) * S.textSize;
+      const fs = Math.max(8, base * (n.sk >= 0.4 ? Math.pow(n.sk, 0.3) : 1.9 * n.sk));
+      ctx.font = `${n.kind === "A" ? 700 : 600} ${fs}px ${FONT}`;
+      const tw = ctx.measureText(n.name).width, ty = n.sy + n.pr + 3;
+      if (!focus) {
+        if (drawn > S.labelMax + (flat ? 0 : 75)) continue;
+        let clash = false;
+        for (const p of placed) if (Math.abs(p.x - n.sx) < (p.w + tw) / 2 + 2 && ty < p.y + p.h && ty + fs * 1.2 > p.y) { clash = true; break; }
+        if (clash) continue;
+      }
+      placed.push({ x: n.sx, y: ty, w: tw, h: fs * 1.2 });
+      drawn++;
+      ctx.globalAlpha = n.pa * S.textAlpha * (focus || n.count >= 3 ? 1 : labelFade);
+      ctx.strokeStyle = TH.halo; ctx.globalAlpha *= 0.7; ctx.strokeText(n.name, n.sx, ty);
+      ctx.globalAlpha = n.pa * S.textAlpha * (focus || n.count >= 3 ? 1 : labelFade);
+      ctx.fillStyle = n.kind === "A" ? TH["pink-label"] : TH.label; ctx.fillText(n.name, n.sx, ty);
+    }
+    ctx.globalAlpha = 1;
+    perf.ms += (performance.now() - t0 - perf.ms) * 0.05;
+  }
+  const availBox = () => {
+    const sideOpen = !$("side").hidden && W > 700;
+    return { left: 0, right: W - (sideOpen ? 340 : 0), top: 84, bottom: H - (W > 700 ? 130 : 170) };
+  };
+  function fit3(snap) {
+    if (!autoFit || !aliveList.length) return;
+    let sx = 0, sy = 0, sz = 0;
+    for (const n of aliveList) { sx += n.dx; sy += n.dy; sz += n.dz; }
+    const c = aliveList.length, cx = sx / c, cy = sy / c, cz = sz / c;
+    let R = 0;
+    for (const n of aliveList) R = Math.max(R, Math.hypot(n.dx - cx, n.dy - cy, n.dz - cz) + n.r);
+    cam.R = Math.max(150, R);
+    const { left, right, top, bottom } = availBox();
+    const zoom = Math.min(1.6, Math.min(right - left, bottom - top) / (2.3 * cam.R + 40));
+    const k = reduce || snap ? 1 : 0.06;
+    view.tz += (zoom - view.tz) * k;
+    cam.px += (cx - cam.px) * k; cam.py += (cy - cam.py) * k; cam.pz += (cz - cam.pz) * k;
+    view.x += ((left + right) / 2 - W / 2 - view.x) * k;
+    view.y += ((top + bottom) / 2 - H / 2 - view.y) * k;
+  }
+  function followStep3() {
+    const n = follow;
+    if (!n.alive) { follow = null; return; }
+    const k = reduce ? 1 : 0.1;
+    cam.px += (n.dx - cam.px) * k; cam.py += (n.dy - cam.py) * k; cam.pz += (n.dz - cam.pz) * k;
+    let D = 90;
+    for (const l of n.links) {
+      if (!l.vis) continue;
+      const o = l.a === n ? l.m : l.a;
+      D = Math.max(D, Math.hypot(o.dx - n.dx, o.dy - n.dy, o.dz - n.dz) + o.r + 30);
+    }
+    cam.R = D;
+    const { left, right, top, bottom } = availBox();
+    const zoom = Math.min(1.6, Math.max(0.3, Math.min(right - left, bottom - top) / (2.3 * D + 40)));
+    view.tz += (zoom - view.tz) * k;
+    view.x += ((left + right) / 2 - W / 2 - view.x) * k * 1.6;
+    view.y += ((top + bottom) / 2 - H / 2 - view.y) * k * 1.6;
+  }
+
+  // ── 播放 ──
+  const playBtn = $("play");
+  const ICON_PLAY = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+  let playing = false;
+  let statsOpen = false;
+  function setPlaying(v) {
+    playing = v;
+    const ended = idx >= N;
+    // 狀態沒變就不要重畫按鈕：播放時每一步都會呼叫，重畫會讓「按下→放開」之間按鈕被換掉，點擊就失效（暫停不了）
+    const key = `${v}|${!v && ended}`;
+    if (key === playBtn.dataset.state) return;
+    playBtn.dataset.state = key;
+    playBtn.innerHTML = (v ? ICON_PAUSE : ICON_PLAY) + (!v && ended ? "<span>播放動畫</span>" : "");
+    playBtn.setAttribute("aria-label", v ? "暫停" : ended ? "播放動畫" : "播放");
+  }
+  function rows(list, el, max) {
+    const top = Math.max(1, ...list.map((x) => x.count));
+    el.replaceChildren(...list.slice(0, max).map((n) => {
+      const li = document.createElement("li");
+      if (n === selected) li.className = "sel";
+      const extra = n.kind === "A" ? `<small title="合作過的男優人數"> ／${n.deg}位</small>` : "";
+      li.innerHTML = `<button type="button" class="row" aria-label="${esc(n.name)}，${n.count} 部"><i style="width:${(n.count / (n.kind === "A" ? top : MAXC)) * 100}%"></i><span>${esc(n.name)}</span><span class="n">${n.count}${extra}</span></button>`;
+      const btn = li.firstChild;
+      btn.addEventListener("mouseenter", () => setHover(n));
+      btn.addEventListener("mouseleave", () => setHover(null));
+      btn.addEventListener("focus", () => setHover(n));
+      btn.addEventListener("blur", () => setHover(null));
+      btn.addEventListener("click", () => select(n === selected ? null : n));
+      return li;
+    }));
+  }
+  const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name, "ja");
+  function render() {
+    $("slider").value = idx; fillRange($("slider"));
+    $("count").textContent = `${idx} / ${N} 部`;
+    const w = works[idx - 1];
+    $("date").textContent = w ? w.date : "—";
+    $("work").innerHTML = w ? `<b>${esc(w.code)}</b> ・ <span class="a">${w.actresses.map(esc).join("、")}</span> × ${w.males.map(esc).join("、")}` : "按下播放，依作品日期逐步建立連線";
+    rows(nodes.filter((n) => n.kind === "A" && n.alive).sort(byCount), $("rankA"), 30);
+    rows(nodes.filter((n) => n.kind === "M" && n.alive).sort(byCount), $("rankM"), 25);
+    renderDetail();
+  }
+  // 選到的人：統計 → 合作對象（誰、幾次、何時）／作品紀錄（依年份）
+  const dState = { tab: "partners", sort: "count", pLimit: 40, rLimit: 60, key: null, at: 0, timer: 0, name: null };
+  const partnersOf = (n) => {
+    const m = new Map();
+    for (const w of n.wl) for (const name of (n.kind === "A" ? w.males : w.actresses)) {
+      const o = byKey.get((n.kind === "A" ? "M:" : "A:") + name);
+      const l = linkMap.get(n.kind === "A" ? n.name + "\u0001" + name : name + "\u0001" + n.name);
+      if (!o || !o.alive || !l || !l.vis) continue;
+      let r = m.get(o);
+      if (!r) m.set(o, (r = { o, count: 0, first: w.date, last: w.date }));
+      r.count++; r.last = w.date;
+    }
+    return [...m.values()];
+  };
+  const JAV = DATA.javdb || {};
+  const WIKI = DATA.wiki || {};
+  // 女優連 JavDB；男優連 avdanyuwiki 的標籤頁（只接受 https://avdanyuwiki.com/ 開頭的網址）
+  const extLink = (n) => n.kind === "A"
+    ? (JAV[n.name] ? { href: "https://javdb.com/actors/" + JAV[n.name], site: "JavDB" } : null)
+    : (/^https:\/\/avdanyuwiki\.com\//.test(WIKI[n.name] || "") ? { href: WIKI[n.name], site: "avdanyuwiki" } : null);
+  function renderDetail(force) {
+    const n = selected, box = $("detail"), side = $("side");
+    const open = !!(n && n.alive);
+    $("rankView").hidden = open; box.hidden = !open;
+    side.classList.toggle("detail-mode", open);
+    if (!open) { dState.key = null; dState.name = null; dState.animFor = null; return; }
+    const key = `${n.name}|${n.count}|${n.deg}|${dState.tab}|${dState.sort}|${dState.pLimit}|${dState.rLimit}|${hiddenA.size}|${S.minLink}|${S.minMale}`;
+    if (!force && key === dState.key) return;
+    const now = performance.now();
+    if (!force && dState.name === n.name && now - dState.at < 220) {
+      if (!dState.timer) dState.timer = setTimeout(() => { dState.timer = 0; renderDetail(); }, 240);
+      return;
+    }
+    const prev = box.querySelector(".dbody");
+    const keep = prev && dState.name === n.name ? prev.scrollTop : 0;
+    dState.key = key; dState.at = now; dState.name = n.name;
+    const A = n.kind === "A", ps = partnersOf(n);
+    const lk = extLink(n);
+    const span = n.first ? (n.first.slice(0, 4) === n.last.slice(0, 4) ? n.first.slice(0, 4) : `${n.first.slice(0, 4)}–${n.last.slice(0, 4)}`) : "—";
+    let body;
+    if (dState.tab === "partners") {
+      ps.sort(dState.sort === "last" ? (a, b) => b.last.localeCompare(a.last) || b.count - a.count : (a, b) => b.count - a.count || b.last.localeCompare(a.last));
+      const top = Math.max(1, ...ps.map((r) => r.count)), shown = ps.slice(0, dState.pLimit), anyAv = shown.some((r) => AV[r.o.name]);
+      body = shown.length
+        ? `<ul class="plist">${shown.map((r) => `<li><button type="button" class="prow${A ? "" : " pk"}" data-go="${esc(r.o.name)}" data-k="${r.o.kind}" aria-label="${esc(r.o.name)}，合作 ${r.count} 部，查看詳細"><i style="width:${(r.count / top) * 100}%"></i><span class="pn">${AV[r.o.name] ? `<img src="${AV[r.o.name]}" alt="">` : anyAv ? `<span class="avatar-slot" aria-hidden="true"></span>` : ""}<span>${esc(r.o.name)}</span></span><span class="pc">×${r.count}</span><span class="ps">${r.first === r.last ? r.first : `${r.first} ～ ${r.last}`}</span></button></li>`).join("")}</ul>`
+          + (ps.length > shown.length ? `<button type="button" class="more" data-act="morep">顯示更多（還有 ${ps.length - shown.length} 位）</button>` : "")
+        : `<div class="empty-note">沒有符合目前過濾條件的合作對象</div>`;
+    } else {
+      const list = n.wl.slice().reverse(), shown = list.slice(0, dState.rLimit), yc = new Map();
+      for (const w of list) yc.set(w.date.slice(0, 4), (yc.get(w.date.slice(0, 4)) || 0) + 1);
+      let html = "", yr = "";
+      for (const w of shown) {
+        const y = w.date.slice(0, 4);
+        if (y !== yr) { html += `${yr ? "</ul>" : ""}<h3 class="yr">${y}<small>${yc.get(y)} 部</small></h3><ul class="wl">`; yr = y; }
+        html += `<li><b>${esc(w.code)}</b><span class="d">${w.date}</span><span class="o">${(A ? w.males : w.actresses).map(esc).join("、")}</span></li>`;
+      }
+      body = html + (html ? "</ul>" : "") + (list.length > shown.length ? `<button type="button" class="more" data-act="morer">顯示更多（還有 ${list.length - shown.length} 部）</button>` : "");
+    }
+    const tab = (v, label, c) => `<button type="button" role="tab" id="tab-${v}" aria-selected="${dState.tab === v}" aria-controls="dpanel" data-act="tab" data-v="${v}">${label}<small> ${c}</small></button>`;
+    const chip = (v, label) => `<button type="button" data-act="sort" data-v="${v}" aria-pressed="${dState.sort === v}">${label}</button>`;
+    box.innerHTML =
+      `<div class="dh"><button type="button" class="back" data-act="back" aria-label="返回排行"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>排行</button><span class="kind ${A ? "a" : "m"}">${A ? "女優" : "男優"}</span></div>`
+      + `<h2 class="dn ${A ? "a" : ""}">${AV[n.name] ? `<img class="avatar" src="${AV[n.name]}" alt="">` : ""}<span class="dn-name">${lk ? `<a class="ext" href="${esc(lk.href)}" target="_blank" rel="noopener noreferrer" title="在 ${lk.site} 開啟 ${esc(n.name)}">${esc(n.name)}<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg><span class="sr-only">（${lk.site}，新分頁）</span></a>` : esc(n.name)}</span></h2>`
+      + `<dl class="stats"><div><dt>${A ? "作品" : "合作作品"}</dt><dd>${n.count}<small>部</small></dd></div><div><dt>${A ? "合作男優" : "合作女優"}</dt><dd>${ps.length}<small>位</small></dd></div><div><dt>期間</dt><dd>${span}</dd></div></dl>`
+      + `<div class="seg" role="tablist" aria-label="詳細內容">${tab("partners", A ? "合作男優" : "合作女優", ps.length)}${tab("records", "作品紀錄", n.count)}</div>`
+      + (dState.tab === "partners" ? `<div class="dtool"><span>${A ? "與每位男優合作的次數" : "與每位女優合作的次數"}</span><span class="chips">${chip("count", "依次數")}${chip("last", "依最近")}</span></div>` : `<div class="dtool"><span>由新到舊，依年份分組</span></div>`)
+      + `<div class="dbody" id="dpanel" role="tabpanel" aria-labelledby="tab-${dState.tab}" tabindex="0">${body}</div>`;
+    const nb = box.querySelector(".dbody"); nb.scrollTop = keep;
+    if (force && !dState.quiet) { const fresh = dState.animFor !== n.name; dState.animFor = n.name; if (fresh) enterDetail(box); else staggerIn(box.querySelectorAll(".prow,.wl li")); }
+    dState.quiet = false;
+  }
+  $("detail").addEventListener("click", (e) => {
+    const t = e.target.closest("[data-act],[data-go]");
+    if (!t) return;
+    if (t.dataset.go) {
+      const o = byKey.get(t.dataset.k + ":" + t.dataset.go);
+      if (o && o.alive) select(o);
+      return;
+    }
+    const a = t.dataset.act;
+    if (a === "back") select(null);
+    else if (a === "tab") { dState.tab = t.dataset.v; renderDetail(true); }
+    else if (a === "sort") { dState.sort = t.dataset.v; renderDetail(true); }
+    else if (a === "morep") { dState.pLimit += 60; dState.quiet = true; renderDetail(true); }
+    else if (a === "morer") { dState.rLimit += 120; dState.quiet = true; renderDetail(true); }
+  });
+  // 選取：畫面以該人為中心，並縮放到她所有合作對象都看得到
+  function select(n) {
+    const was = selected;
+    if (n !== was && S.ego !== false) startTransition(); // 換成（或離開）以他為原點的排列：節點由中心往外滑到新位置
+    selected = n;
+    if (n !== was) { if (was) tween(was, "sel", 0, 260, "outQuad"); if (n) { tween(n, "sel", 1, 700, "outBack"); ripple(n); } }
+    if (n !== was) { dState.pLimit = 40; dState.rLimit = 60; retarget(); needReheat = Math.max(needReheat, 0.25); }
+    render(); renderDetail(true);
+    $("live").textContent = n ? `${n.name}：${n.kind === "A" ? "作品" : "合作"} ${n.count} 部，${n.kind === "A" ? "合作男優" : "合作女優"} ${n.deg} 位` : "";
+    view.vx = view.vy = 0; anchor = null;
+    if (n) { setAutoFit(false); follow = n; }
+    else if (was) setAutoFit(true);
+    if (!n && was) staggerIn(document.querySelectorAll("#rankView .row"));
+  }
+  function followStep() {
+    const n = follow;
+    if (!n.alive) { follow = null; return; }
+    const sideOpen = !$("side").hidden && W > 700;
+    const cx = (W - (sideOpen ? 340 : 0)) / 2, cy = (84 + H - (W > 700 ? 130 : 170)) / 2;
+    let dx = 90, dy = 70;
+    for (const l of n.links) {
+      if (!l.vis) continue;
+      const o = l.a === n ? l.m : l.a;
+      dx = Math.max(dx, Math.abs(o.dx - n.dx) + o.r + 40); dy = Math.max(dy, Math.abs(o.dy - n.dy) + o.r + 40);
+    }
+    const zoom = Math.min(1.6, Math.max(0.4, Math.min((cx - 24) / dx, (cy - 50) / dy)));
+    const k = reduce ? 1 : 0.1;
+    view.tz += (zoom - view.tz) * k;
+    view.x += (cx - W / 2 - n.dx * view.zoom - view.x) * Math.min(1, k * 1.6);
+    view.y += (cy - H / 2 - n.dy * view.zoom - view.y) * Math.min(1, k * 1.6);
+  }
+
+  function go(k, animate) {
+    const prev = idx;
+    idx = Math.max(0, Math.min(N, k));
+    recount(idx);
+    markYear();
+    if (animate && idx === prev + 1) {
+      for (const l of workLinks[idx - 1]) { l.pulse = 1; l.a.pulse = 1; l.m.pulse = 1; }
+    }
+    render();
+    if (idx >= N && playing) setPlaying(false); else setPlaying(playing);
+  }
+  $("slider").addEventListener("input", (e) => go(+e.target.value, false));
+  $("restart").addEventListener("click", () => { go(0, false); setPlaying(false); });
+  playBtn.addEventListener("click", () => { if (idx >= N) go(0, false); setPlaying(!playing); });
+  addEventListener("keydown", (e) => {
+    if (e.target.matches("input,select,textarea")) return;
+    if (e.code === "Space") { e.preventDefault(); playBtn.click(); }
+    if (e.code === "ArrowRight") go(idx + 1, true);
+    if (e.code === "ArrowLeft") go(idx - 1, false);
+    if (e.code === "Escape") { if (!$("settings").hidden) setSettingsOpen(false); else select(null); }
+  });
+  $("rankBtn").addEventListener("click", () => {
+    const side = $("side"); side.hidden = !side.hidden;
+    document.body.classList.toggle("side-open", !side.hidden);
+    $("rankBtn").setAttribute("aria-pressed", String(!side.hidden));
+  });
+  if (matchMedia("(max-width: 700px)").matches) { $("side").hidden = true; $("rankBtn").setAttribute("aria-pressed", "false"); }
+  document.body.classList.toggle("side-open", !$("side").hidden);
+
+  (() => {
+    const ticks = $("ticks");
+    let lastYear = "", lastPct = -9;
+    works.forEach((w, i) => {
+      const y = w.date.slice(0, 4);
+      if (y === lastYear) return;
+      lastYear = y;
+      const pct = ((i + 1) / N) * 100;
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.y = y; b.dataset.i = i + 1;
+      b.title = b.ariaLabel = `跳到 ${y} 年`;
+      b.textContent = y; b.style.left = `${pct}%`;
+      if (pct - lastPct < 3.6) b.className = "mini"; // 早年作品很少，年份標籤會疊在一起，只畫小刻度（指到才看得到年份）
+      else lastPct = pct;
+      ticks.append(b);
+    });
+    ticks.addEventListener("click", (e) => {
+      let b = e.target.closest("button[data-i]");
+      if (!b) { // 點在空隙：跳到最近的年份
+        let best = Infinity;
+        for (const c of ticks.children) {
+          const r = c.getBoundingClientRect(), d = Math.abs(e.clientX - (r.left + r.width / 2));
+          if (d < best) { best = d; b = c; }
+        }
+      }
+      if (b) go(+b.dataset.i, false);
+    });
+  })();
+  function markYear() {
+    const y = idx > 0 ? works[idx - 1].date.slice(0, 4) : "";
+    for (const b of $("ticks").children) b.classList.toggle("on", b.dataset.y === y);
+  }
+
+  // ── 互動：拖曳節點（連動鄰居、放開後滑行）、平移（慣性）、縮放（緩動） ──
+  let dragging = null, panning = null, rotating = null, moved = 0, downNode = null;
+  const samples = []; // 最近幾筆指標位置，放開時算出速度
+  const toWorld = (ev) => ({ x: (ev.clientX - W / 2 - view.x) / view.zoom, y: (ev.clientY - H / 2 - view.y) / view.zoom });
+  const tip = $("tip");
+  function showTip(n, ev) {
+    let body;
+    if (n.kind === "A") {
+      const ms = n.links.filter((l) => l.vis).length;
+      body = `<b style="color:var(--pink-label)">${esc(n.name)}</b><br>作品 ${n.count} 部（有男優資料）<br>合作男優 ${ms} 位<br>${n.first} ～ ${n.last}<br>最近：${n.wl.slice(-6).reverse().map((w) => esc(w.code)).join("、")}`;
+    } else {
+      const all = Object.entries(n.perActress || {}).sort((a, b) => b[1] - a[1]);
+      const per = all.slice(0, 5).map(([a, c]) => `${esc(a)} ${c}`).join("、") + (all.length > 5 ? `…等 ${all.length} 位` : "");
+      body = `<b>${esc(n.name)}</b><br>合作 ${n.count} 部・${all.length} 位女優<br>${per}<br>${n.first} ～ ${n.last}`;
+    }
+    const f = selected;
+    if (f && f.alive && n !== f && n.kind !== f.kind) { // 已選取一個人：滑過異性節點時，先看「和原點」的合作次數與作品
+      const ws = f.wl.filter((w) => (n.kind === "M" ? w.males : w.actresses).includes(n.name));
+      const pair = ws.length
+        ? `<b>${esc(f.name)} × ${esc(n.name)}</b>：合作 <b>${ws.length}</b> 部（${ws[0].date} ～ ${ws[ws.length - 1].date}）<br>${ws.slice(-5).reverse().map((w) => `${w.date}　${esc(w.code)} ${esc(w.title.length > 26 ? w.title.slice(0, 26) + "…" : w.title)}`).join("<br>")}${ws.length > 5 ? `<br>…另有 ${ws.length - 5} 部（完整清單在右側面板）` : ""}`
+        : `<b>${esc(f.name)} × ${esc(n.name)}</b>：此時間點沒有合作紀錄`;
+      body = `${pair}<hr style="border:0;border-top:1px solid var(--line);margin:6px 0"><span style="color:var(--muted)">${body}</span>`;
+    }
+    tip.hidden = false; tip.innerHTML = body;
+    tip.style.left = Math.min(ev.clientX + 14, innerWidth - 320) + "px";
+    tip.style.top = Math.max(8, Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 12)) + "px";
+  }
+  canvas.addEventListener("pointerdown", (ev) => {
+    canvas.setPointerCapture(ev.pointerId);
+    moved = 0; samples.length = 0; view.vx = view.vy = 0;
+    if (mode !== "2d") { // 3D／4D：拖曳旋轉，Shift＋拖曳或右鍵平移；點一下選取
+      downNode = pick(ev);
+      samples.push({ t: performance.now(), x: ev.clientX, y: ev.clientY });
+      rotating = { lx: ev.clientX, ly: ev.clientY, pan: ev.shiftKey || ev.button === 2 };
+      cam.yv = cam.pv = 0;
+      if (rotating.pan) setAutoFit(false);
+      return;
+    }
+    const n = pick(ev);
+    downNode = n;
+    samples.push({ t: performance.now(), x: ev.clientX, y: ev.clientY });
+    if (n && !egoActive()) { dragging = n; const p = toWorld(ev); n.fx = p.x; n.fy = p.y; alphaTarget = 0.3; }
+    else { panning = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y }; setAutoFit(false); }
+  });
+  canvas.addEventListener("pointermove", (ev) => {
+    if (rotating) {
+      const dx = ev.clientX - rotating.lx, dy = ev.clientY - rotating.ly;
+      rotating.lx = ev.clientX; rotating.ly = ev.clientY;
+      moved += Math.abs(dx) + Math.abs(dy);
+      samples.push({ t: performance.now(), x: ev.clientX, y: ev.clientY });
+      if (samples.length > 6) samples.shift();
+      if (rotating.pan) { view.x += dx; view.y += dy; }
+      else { cam.tp = null; cam.yaw += dx * 0.008; cam.pitch = Math.max(-1.45, Math.min(1.45, cam.pitch + dy * 0.008)); }
+      tip.hidden = true;
+      return;
+    }
+    if (dragging || panning) {
+      moved += Math.abs(ev.movementX || 0) + Math.abs(ev.movementY || 0);
+      samples.push({ t: performance.now(), x: ev.clientX, y: ev.clientY });
+      if (samples.length > 6) samples.shift();
+    }
+    if (dragging) { const p = toWorld(ev); dragging.fx = p.x; dragging.fy = p.y; tip.hidden = true; return; }
+    if (panning) { view.x = panning.vx + ev.clientX - panning.x; view.y = panning.vy + ev.clientY - panning.y; return; }
+    const n = pick(ev);
+    setHover(n);
+    canvas.style.cursor = n ? (mode === "2d" ? "grab" : "pointer") : (mode === "2d" ? "default" : "grab");
+    if (n) showTip(n, ev); else tip.hidden = true;
+  });
+  function release(ev) {
+    // 以最近 80ms 內的指標移動算出放開速度（像素/毫秒）
+    const now = performance.now();
+    const recent = samples.filter((s) => now - s.t < 90);
+    let vx = 0, vy = 0;
+    if (recent.length >= 2) {
+      const a = recent[0], b = recent[recent.length - 1], dt = Math.max(1, b.t - a.t);
+      vx = (b.x - a.x) / dt; vy = (b.y - a.y) / dt;
+    }
+    if (rotating) {
+      if (moved < 5) select(downNode && downNode !== selected ? downNode : null);
+      else if (!reduce && !rotating.pan) {
+        cam.yv = Math.max(-0.08, Math.min(0.08, vx * 16 * 0.008 * 0.9));
+        cam.pv = Math.max(-0.08, Math.min(0.08, vy * 16 * 0.008 * 0.9));
+      }
+      rotating = null; samples.length = 0;
+      return;
+    }
+    if (dragging) {
+      const n = dragging;
+      n.fx = n.fy = null;
+      if (!reduce) { n.vx = (vx * 16) / view.zoom * 0.9; n.vy = (vy * 16) / view.zoom * 0.9; }
+      alphaTarget = 0; alpha = Math.max(alpha, 0.35);
+      if (moved < 5) select(n === selected ? null : n);
+    } else if (panning) {
+      if (!reduce) { view.vx = vx * 16; view.vy = vy * 16; }
+      if (moved < 5) select(downNode && downNode !== selected ? downNode : null); // 以他為原點時節點不能拖，點節點＝選取、拖曳＝平移
+    }
+    dragging = panning = null; samples.length = 0;
+  }
+  canvas.addEventListener("pointerup", release);
+  canvas.addEventListener("pointercancel", release);
+  canvas.addEventListener("pointerleave", () => { if (!dragging) { setHover(null); tip.hidden = true; } });
+  canvas.addEventListener("wheel", (ev) => {
+    ev.preventDefault();
+    setAutoFit(false);
+    const factor = Math.exp(-ev.deltaY * 0.0015);
+    view.tz = Math.min(3, Math.max(0.15, view.tz * factor));
+    if (mode === "2d") anchor = { sx: ev.clientX, sy: ev.clientY, wx: toWorld(ev).x, wy: toWorld(ev).y };
+  }, { passive: false });
+  canvas.addEventListener("contextmenu", (ev) => { if (mode !== "2d") ev.preventDefault(); });
+
+  // ── 自動縮放置中 ──
+  let autoFit = true;
+  function setAutoFit(v) { autoFit = v; follow = null; $("fitBtn").setAttribute("aria-pressed", String(v)); if (v) { anchor = null; view.vx = view.vy = 0; } }
+  $("fitBtn").addEventListener("click", () => setAutoFit(!autoFit));
+  canvas.addEventListener("dblclick", () => setAutoFit(true));
+  function fit(snap) {
+    if (mode !== "2d") { fit3(snap); return; }
+    if (!autoFit || !aliveList.length) return;
+    const sideOpen = !$("side").hidden && W > 700;
+    const left = 0, right = W - (sideOpen ? 340 : 0), top = 84, bottom = H - (W > 700 ? 130 : 170);
+    // 以包圍盒中心置中（忽略離群的少數節點會更穩，但先求簡單）
+    let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    for (const n of aliveList) {
+      minX = Math.min(minX, n.dx - n.r); maxX = Math.max(maxX, n.dx + n.r);
+      minY = Math.min(minY, n.dy - n.r - 16); maxY = Math.max(maxY, n.dy + n.r + 18);
+    }
+    const bw = Math.max(240, maxX - minX + 80), bh = Math.max(200, maxY - minY + 60);
+    const zoom = Math.min(1.4, (right - left) / bw, (bottom - top) / bh);
+    const k = reduce || snap ? 1 : 0.05;
+    view.tz += (zoom - view.tz) * k;
+    const cxw = (minX + maxX) / 2, cyw = (minY + maxY) / 2;
+    view.x += ((left + right) / 2 - W / 2 - cxw * view.zoom - view.x) * k;
+    view.y += ((top + bottom) / 2 - H / 2 - cyw * view.zoom - view.y) * k;
+  }
+
+  // ── 主迴圈：固定 60Hz 的物理步進（與畫面更新率無關），鏡頭有慣性與緩動 ──
+  let last = performance.now(), acc = 0, stepAcc = 0;
+  function frame(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (statsOpen) { requestAnimationFrame(frame); return; } // 統計面板蓋住整個畫面時，主圖暫停繪製
+    if (playing) {
+      acc += dt;
+      const step = 900 / +$("speed").value;
+      if (acc >= step) { const k = Math.floor(acc / step); acc -= k * step; go(idx + k, true); }
+    }
+    syncEgo();
+    for (const n of nodes) {
+      n.r += (n.rt - n.r) * (reduce ? 1 : 0.18);
+      n.shown += ((n.alive && !egoGone(n) ? 1 : 0) - n.shown) * (reduce ? 1 : 0.14);
+      if (n.pulse > 0) n.pulse = Math.max(0, n.pulse - dt / 700);
+    }
+    const focus = selected || hover;
+    for (const n of nodes) {
+      const target = focus && n !== focus && !focus.nbrs.has(n) ? 1 : 0;
+      n.dim += (target - n.dim) * 0.2;
+    }
+    for (const l of links) {
+      l.shown += ((l.vis && !egoGone(l.a) && !egoGone(l.m) ? l.count : 0) - l.shown) * (reduce ? 1 : 0.14);
+      if (l.pulse > 0) l.pulse = Math.max(0, l.pulse - dt / 700);
+      const target = focus && l.a !== focus && l.m !== focus ? 1 : 0;
+      l.dim += (target - l.dim) * 0.2;
+    }
+    stepAcc += dt;
+    let steps = 0;
+    while (stepAcc >= 1000 / 60 && steps < 3) { physicsStep(); stepAcc -= 1000 / 60; steps++; }
+    if (stepAcc > 100) stepAcc = 0;
+    // 鏡頭：慣性平移與緩動縮放
+    if (!panning) { view.x += view.vx; view.y += view.vy; view.vx *= 0.93; view.vy *= 0.93; if (Math.abs(view.vx) < 0.05) view.vx = 0; if (Math.abs(view.vy) < 0.05) view.vy = 0; }
+    updateDisplay(false);
+    if (mode !== "2d" && !rotating) { // 3D／4D：旋轉慣性＋緩慢自動旋轉
+      cam.yaw += cam.yv + (S.autoSpin && !sysReduce && !selected ? 0.0022 : 0);
+      cam.pitch = Math.max(-1.45, Math.min(1.45, cam.pitch + cam.pv));
+      cam.yv *= 0.95; cam.pv *= 0.95;
+      if (cam.tp != null) cam.pitch += (cam.tp - cam.pitch) * (reduce ? 1 : 0.05); // 切換模式時的預設俯仰角（一拖曳就交還給使用者）
+    }
+    if (follow) { if (mode === "2d") followStep(); else followStep3(); } else fit();
+    const kz = reduce ? 1 : 0.2;
+    view.zoom += (view.tz - view.zoom) * kz;
+    if (anchor && !autoFit) {
+      view.x = anchor.sx - W / 2 - anchor.wx * view.zoom;
+      view.y = anchor.sy - H / 2 - anchor.wy * view.zoom;
+      if (Math.abs(view.tz - view.zoom) < 0.001) anchor = null;
+    }
+    paint();
+    requestAnimationFrame(frame);
+  }
+
+  // ── 檢視模式 ──
+  const HINT = {
+    "2d": "平面圖：拖曳節點會牽動鄰居，雙擊畫面回到置中。點選一個人會以他為原點排列：越常合作離他越近，虛線圈上的 ×N 是合作次數。",
+    "3d": "球體：同一套力導向多一個深度軸。拖曳旋轉，Shift＋拖曳（或右鍵）平移，滾輪縮放，雙擊回到置中。點選一個人會以他為球心，球殼半徑＝合作次數。",
+    "4d": "時間塔：由下往上，越高越晚。沒選人時高度是各人首次出現的年份；點選一個人會以他為原點（在塔底），高度變成與他首次合作的時間，離原點越近＝合作越多次（高契合者的時間位置會被壓縮靠近）。拖曳旋轉，拉動底部時間軸可看它一層層長高。",
+  };
+  const rowEls = {};
+  function syncModeUI() {
+    $("modeTxt").textContent = mode.toUpperCase();
+    $("modeBtn").setAttribute("aria-label", `切換檢視模式（目前 ${mode.toUpperCase()}）`);
+    for (const b of document.querySelectorAll(".modes button")) b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
+    $("modeHint").textContent = HINT[mode];
+    $("viewExtra").hidden = mode === "2d";
+    if (rowEls.timeH) rowEls.timeH.hidden = mode !== "4d";
+  }
+  function applyMode(m, init) {
+    if (!init && m !== mode) { startTransition(); if (motion) A.animate($("modeBtn"), { scale: [0.82, 1], duration: 480, ease: "outBack" }); }
+    mode = m; S.mode = m;
+    if (!init) saveSettings();
+    if (m === "3d") for (const n of nodes) if (Math.abs(n.z) < 1) n.z = (rnd() - 0.5) * 160;
+    syncModeUI();
+    if (m !== "2d" && !init) cam.tp = m === "4d" ? 0.3 : 0.42;
+    if (init && m === "4d") cam.pitch = 0.3;
+    setAutoFit(true); anchor = null; view.vx = view.vy = 0;
+    if (selected && selected.alive) { setAutoFit(false); follow = selected; }
+    if (!init) needReheat = Math.max(needReheat, 0.7);
+  }
+  // 切到 3D／4D：整張圖被吸進原點（黑洞），換好排列後再從奇點噴出來。可在設定關閉；noFx＝程式內部直接切換（導覽、測試）
+  const bh = document.createElement("div");
+  bh.id = "bh"; bh.hidden = true;
+  bh.innerHTML = '<div class="bh-v"></div><div class="bh-core"><i class="bh-ring"></i><i class="bh-disc"></i></div>';
+  document.body.append(bh);
+  let holeBusy = false;
+  function blackHole(m) {
+    holeBusy = true;
+    const n = selected && selected.alive ? selected : null;
+    const X = n ? n.sx : W / 2, Y = n ? n.sy : H / 2, d = Math.min(W, H) * 0.34;
+    bh.style.setProperty("--bx", X + "px"); bh.style.setProperty("--by", Y + "px"); bh.style.setProperty("--d", d + "px");
+    const veil = bh.querySelector(".bh-v"), core = bh.querySelector(".bh-core"), ring = bh.querySelector(".bh-ring");
+    const cvs = [$("gl"), $("c")];
+    for (const c of cvs) c.style.transformOrigin = `${X}px ${Y}px`;
+    bh.hidden = false;
+    const spin = A.animate(ring, { rotate: [0, 1080], duration: 1500, ease: "linear", loop: true });
+    let applied = false, done = false;
+    const apply = () => { if (!applied) { applied = true; applyMode(m); } };
+    const finish = () => {
+      if (done) return; done = true; clearTimeout(guard); spin.pause(); bh.hidden = true;
+      for (const c of cvs) { c.style.transform = ""; c.style.opacity = ""; c.style.transformOrigin = ""; }
+      holeBusy = false;
+    };
+    const guard = setTimeout(() => { apply(); finish(); }, 2600);
+    // 吸入：整張圖繞著原點旋轉並縮小，黑洞長大、四周暗下來
+    A.animate(veil, { opacity: [0, 1], duration: 560, ease: "inQuad" });
+    A.animate(core, { scale: [0, 1], opacity: [0, 1], duration: 560, ease: "outCubic" });
+    A.animate(cvs, { scale: [1, 0.06], rotate: [0, -160], opacity: [1, 0], duration: 560, ease: "inCubic", onComplete: () => {
+      apply(); // 換成 3D／4D 排列（節點從中心向外滑開），同時畫面由奇點展開回來
+      A.animate(veil, { opacity: [1, 0], duration: 760, ease: "outQuad" });
+      A.animate(core, { scale: [1, 1.7], opacity: [1, 0], duration: 620, ease: "outCubic" });
+      A.animate(cvs, { scale: [0.06, 1], rotate: [160, 0], opacity: [0, 1], duration: 820, ease: "outCubic", onComplete: finish });
+    } });
+  }
+  function setMode(m, init, noFx) {
+    if (holeBusy && !noFx) return;
+    if (!init && !noFx && m !== mode && m !== "2d" && S.hole !== false && motion && !statsOpen && !intro.on) { blackHole(m); return; }
+    applyMode(m, init);
+  }
+  $("modeBtn").addEventListener("click", () => setMode(mode === "2d" ? "3d" : mode === "3d" ? "4d" : "2d"));
+  for (const b of document.querySelectorAll(".modes button")) b.addEventListener("click", () => setMode(b.dataset.mode));
+  $("spinChk").checked = !!S.autoSpin;
+  $("spinChk").addEventListener("change", (e) => { S.autoSpin = e.target.checked; saveSettings(); });
+  // 動畫特效總開關：關閉後不做開場、切換轉場、面板進場、漣漪／脈衝與星塵閃爍，畫面直接跳到結果（與自動旋轉互相獨立）
+  function applyFx() {
+    reduce = sysReduce || S.fx === false;
+    motion = !!A && !reduce;
+    root.dataset.fx = reduce ? "off" : "on";
+    if (reduce && intro.on) { intro.on = false; intro.t = 1; }
+  }
+  applyFx();
+  $("fxChk").checked = S.fx !== false;
+  $("fxChk").addEventListener("change", (e) => { S.fx = e.target.checked; applyFx(); saveSettings(); });
+  $("holeChk").checked = S.hole !== false;
+  $("holeChk").addEventListener("change", (e) => { S.hole = e.target.checked; saveSettings(); });
+  $("avatarChk").checked = S.showAvatars !== false;
+  $("avatarChk").addEventListener("change", (e) => { S.showAvatars = e.target.checked; saveSettings(); });
+  // 以他為原點排列的兩個開關：開關瞬間用與切換模式相同的轉場滑過去
+  $("egoChk").checked = S.ego !== false;
+  $("egoChk").addEventListener("change", (e) => { if (selected) startTransition(); S.ego = e.target.checked; saveSettings(); });
+  $("egoHideChk").checked = !!S.egoHide;
+  $("egoHideChk").addEventListener("change", (e) => { S.egoHide = e.target.checked; saveSettings(); });
+
+  // ── 設定面板 ──
+  function setSettingsOpen(v) {
+    const was = !$("settings").hidden;
+    $("settings").hidden = !v; $("setBtn").setAttribute("aria-pressed", String(v));
+    if (v && !was && motion) A.animate($("settings"), { opacity: [0, 1], scale: [0.96, 1], translateY: [-6, 0], duration: 280, ease: "outCubic" });
+  }
+  $("setBtn").addEventListener("click", () => setSettingsOpen($("settings").hidden));
+  $("setClose").addEventListener("click", () => setSettingsOpen(false));
+  const inputs = {};
+  for (const sp of SPEC) {
+    const lab = document.createElement("label"); lab.className = "sl";
+    const name = document.createElement("span"); name.textContent = sp.label;
+    const out = document.createElement("output");
+    const inp = document.createElement("input");
+    Object.assign(inp, { type: "range", min: sp.min, max: sp.max, step: sp.step });
+    const show = () => { inp.value = S[sp.k]; out.textContent = (+S[sp.k]).toFixed(sp.dp); fillRange(inp); };
+    inp.addEventListener("input", () => {
+      S[sp.k] = +inp.value; out.textContent = (+inp.value).toFixed(sp.dp); fillRange(inp); saveSettings();
+      if (sp.radius) retarget();
+      if (sp.recount) { recount(idx); render(); }
+      if (sp.sim || sp.recount) needReheat = Math.max(needReheat, 0.6);
+    });
+    lab.append(name, out, inp); $(sp.g).append(lab); rowEls[sp.k] = lab;
+    inputs[sp.k] = show; show();
+  }
+  const speedSel = $("speed");
+  speedSel.value = S.speed;
+  speedSel.addEventListener("change", () => { S.speed = speedSel.value; saveSettings(); });
+  const akaOf = new Map();
+  for (const a of DATA.actresses) for (const k of a.aka || []) akaOf.set(k, a.name);
+  $("nameList").append(...nodes.map((n) => Object.assign(document.createElement("option"), { value: n.name })),
+    ...[...akaOf].map(([k, v]) => Object.assign(document.createElement("option"), { value: k, label: `＝${v}` })));
+  $("setSearch").addEventListener("change", (e) => {
+    const q = e.target.value.trim(), want = akaOf.get(q) || q;
+    const n = nodes.find((x) => x.name === want);
+    if (n && n.alive) { select(n); e.target.blur(); }
+  });
+  const aList = $("aList"), aBoxes = new Map(), aRows = [];
+  // 模糊比對：NFKC、平片假名視為同字、常見繁體／異體字併成同一寫法；整段包含 > 依序出現（子序列）
+  const VARIANT = { "遙": "遥", "亞": "亜", "澤": "沢", "濱": "浜", "齋": "斎", "齊": "斉", "瀨": "瀬", "櫻": "桜", "戶": "戸", "國": "国", "實": "実", "惠": "恵", "德": "徳", "兒": "児", "學": "学", "廣": "広", "彌": "弥", "會": "会", "藝": "芸", "龍": "竜" };
+  const fz = (t) => String(t).normalize("NFKC").toLowerCase()
+    .replace(/[\u30a1-\u30f6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s・･·.\-_ー]/g, "")
+    .replace(/./g, (c) => VARIANT[c] || c);
+  const fzScore = (hay, q) => {
+    const i = hay.indexOf(q);
+    if (i >= 0) return i === 0 ? 3 : 2;
+    let j = 0;
+    for (const c of hay) if (c === q[j] && ++j === q.length) return 1;
+    return 0;
+  };
+  for (const a of DATA.actresses.slice().sort((x, y) => y.works - x.works)) {
+    const lab = document.createElement("label"), box = document.createElement("input");
+    box.type = "checkbox"; box.checked = !hiddenA.has(a.name); aBoxes.set(a.name, box);
+    box.addEventListener("change", applyHidden);
+    lab.append(box, `${a.name}（${a.works}）`);
+    if (a.aka && a.aka.length) { const k = document.createElement("span"); k.className = "aka"; k.textContent = "＝" + a.aka.join("／"); lab.append(k); }
+    aList.append(lab);
+    aRows.push({ a, lab, box, keys: [a.name, ...(a.aka || [])].map(fz) });
+  }
+  const aFind = $("aFind"), aCnt = $("aCnt"), aNone0 = document.createElement("div");
+  aNone0.className = "none"; aNone0.textContent = "沒有符合的女優"; aNone0.hidden = true; aList.append(aNone0);
+  const aVisible = () => aRows.filter((r) => !r.lab.hidden);
+  function filterActresses() {
+    const q = fz(aFind.value);
+    if (!q) { aRows.sort((x, y) => y.a.works - x.a.works); }
+    for (const r of aRows) r.sc = q ? Math.max(0, ...r.keys.map((k) => fzScore(k, q))) : 1;
+    if (q) aRows.sort((x, y) => y.sc - x.sc || y.a.works - x.a.works);
+    for (const r of aRows) { r.lab.hidden = r.sc === 0; aList.insertBefore(r.lab, aNone0); }
+    const v = aVisible().length;
+    aNone0.hidden = v > 0;
+    aCnt.textContent = q ? `${v} / ${aRows.length}` : "";
+    aList.scrollTop = 0;
+  }
+  aFind.addEventListener("input", filterActresses);
+  aFind.addEventListener("keydown", (e) => { if (e.key === "Escape" && aFind.value) { aFind.value = ""; filterActresses(); e.stopPropagation(); } });
+  function applyHidden() {
+    hiddenA.clear();
+    for (const [name, box] of aBoxes) if (!box.checked) hiddenA.add(name);
+    S.hidden = [...hiddenA]; saveSettings();
+    recount(idx); needReheat = Math.max(needReheat, 0.6);
+    if (selected && !selected.alive) select(null); else render();
+  }
+  const setAll = (on) => { for (const r of aVisible()) r.box.checked = on; applyHidden(); };
+  $("aAll").addEventListener("click", () => setAll(true));
+  $("aNone").addEventListener("click", () => setAll(false));
+  $("setReset").addEventListener("click", () => {
+    for (const sp of SPEC) S[sp.k] = sp.def;
+    S.speed = "1"; speedSel.value = "1"; S.hidden = []; S.autoSpin = false; $("spinChk").checked = false; S.fx = true; $("fxChk").checked = true; applyFx(); S.showAvatars = true; $("avatarChk").checked = true;
+    S.hole = true; $("holeChk").checked = true; S.ego = true; $("egoChk").checked = true; S.egoHide = false; $("egoHideChk").checked = false;
+    hiddenA.clear(); for (const box of aBoxes.values()) box.checked = true;
+    aFind.value = ""; filterActresses();
+    for (const k in inputs) inputs[k]();
+    try { localStorage.removeItem("graph-settings"); } catch (e) { /* ignore */ }
+    retarget(); recount(idx); render(); needReheat = 0.6;
+    setMode("2d");
+  });
+
+  // 開啟時直接顯示完整關聯圖；按「播放動畫」才會從頭依年份跑
+  go(N, false);
+  for (const n of nodes) n.shown = n.alive ? 1 : 0;
+  for (const l of links) l.shown = l.vis ? l.count : 0;
+  alpha = 1;
+  setMode(mode, true);
+  const t0 = performance.now();
+  for (let i = 0; i < 400 && performance.now() - t0 < 1500; i++) physicsStep();
+  updateDisplay(true);
+  fit(true); view.zoom = view.tz; fit(true); view.zoom = view.tz;
+  setPlaying(false);
+  startIntro();
+  window.__graph = {
+    get alpha() { return alpha; },
+    get zoom() { return view.zoom; },
+    get mode() { return mode; },
+    setMode: (m) => setMode(m, false, true),
+    get holeBusy() { return holeBusy; },
+    gl: !!GL,
+    perfMs: () => perf.ms,
+    avatarsDrawn: () => perf.av,
+    introOn: () => intro.on,
+    glInfo: () => (GL ? { atlas: GL.slot.size, calls: GL.renderer.info.render.calls, tris: GL.renderer.info.render.triangles } : null),
+    cam,
+    // 測試用：目前以他為原點的排列（各夥伴離原點的實際距離、X 座標與次數）
+    ego() {
+      if (!ego.on) return null;
+      const f = ego.anchor, out = [];
+      for (const l of f.links) {
+        if (!l.vis) continue;
+        const o = l.a === f ? l.m : l.a, p = ego.pos.get(o);
+        out.push({ name: o.name, c: l.count, first: l.first0, d: Math.hypot(p[0], p[1], p[2]), x: mode === "4d" ? -p[1] : p[0], dd: Math.hypot(o.dx - f.dx, o.dy - f.dy, o.dz - f.dz) });
+      }
+      return { anchor: f.name, first0: f.first0, last0: f.last0, cmax: ego.cmax, dmin: ego.dmin, dmax: ego.dmax, xmax: ego.xmax, orbits: ego.orbits, partners: out };
+    },
+    nodes: () => aliveList.length,
+    radii: (names) => names.map((nm) => { const n = nodes.find((x) => x.name === nm); return n && [nm, Math.round(n.r * 10) / 10, Math.round(n.rt * 10) / 10]; }),
+    // 測試用：目前可見連線的平均長度
+    avgLink: () => { const v = links.filter((l) => l.vis && l.a.alive && l.m.alive); return v.reduce((t, l) => t + Math.hypot(l.a.x - l.m.x, l.a.y - l.m.y), 0) / Math.max(1, v.length); },
+    // 測試用：回傳節點的世界座標、速度與螢幕座標
+    find(name) {
+      const n = nodes.find((x) => x.name === name);
+      if (!n) return n;
+      return { x: n.x, y: n.y, z: n.z, vx: n.vx, vy: n.vy, sx: n.sx, sy: n.sy, fx: n.fx };
+    },
+  };
+
+  // ── 互動導覽：逐步高亮真實介面；示範動作會真的切換模式／選人，離開時還原 ──
+  {
+    const TOUR_SEEN = "graph-tour-seen";
+    const topActress = () => nodes.filter((n) => n.kind === "A" && n.alive).sort((a, b) => b.count - a.count)[0] || null;
+    // 把畫面擺成某個示範狀態：完整時間、指定模式、是否選取最多作品的女優、設定與排行面板開合
+    function demo(o) {
+      go(N, false); setPlaying(false);
+      if (o.mode && mode !== o.mode) setMode(o.mode, false, true);
+      const want = o.sel ? topActress() : null;
+      if (selected !== want) select(want);
+      setSettingsOpen(!!o.settings);
+      if (!!o.side === $("side").hidden) $("rankBtn").click();
+    }
+    // 以選取者為中心的方框（挖洞用）；半徑取最外圈軌道
+    const anchorBox = (wide) => {
+      const n = selected;
+      if (!n) return null;
+      const r = wide && ego.on ? Math.min(ego.dmax * view.zoom + 36, Math.min(W, H) * 0.46) : 64;
+      return { left: n.sx - r, top: n.sy - r, width: r * 2, height: r * 2 };
+    };
+    const STEPS = [
+      { t: "先講核心想法：把「合作」想成「引力」", wide: true, act: () => demo({ mode: "2d" }), html: `
+        <ul>
+          <li>把<b>每位女優想成一顆恆星</b>，和她合作過的男優是<b>繞著她轉的行星</b>。</li>
+          <li><b>合作次數＝引力的強度</b>（本站拿它當「契合度」的代理指標）。合作越多次，引力越大，行星被拉進越小的軌道；只合作一次的引力很弱，就飄在最外圍。所以<b>「距離」就是契合度的刻度</b>。</li>
+          <li><b>時間是另一條獨立的軸</b>（4D 的垂直方向）：她拍第一部片＝時間零點（塔底）；越晚才合作的人，在塔上的位置越高。</li>
+          <li><b>所以「先來」不等於「靠近」</b>：早年只合作一次的男優，雖然在塔底，卻離她很遠；晚年才出現、但合作很多次的男優，位置雖高，卻貼近中軸。<b>時間決定他在塔的哪一層，引力決定他離她多近。</b></li>
+          <li>刻度用<b>對數</b>：1 次→2 次差很多，20 次→21 次差很少，所以靠近中心的圈比較密、外圈比較疏。</li>
+        </ul>
+        <div class="note">但書：這是視覺比喻，不是真的物理定律。次數是「已知作品的下限」，也會受作品量與公司安排影響，只能當契合度的參考指標，不是客觀量測。</div>` },
+      { t: "這張圖在畫什麼", target: "#legend", act: () => demo({ mode: "2d" }), html: `
+        <ul>
+          <li><b>粉色圓點＝女優</b>、<b>紫色圓點＝男優</b>（沒有大頭貼的男優是霧面玻璃＋人形剪影）。</li>
+          <li><b>一條線＝兩人合作過</b>；線越粗、顏色越深，合作次數越多。</li>
+          <li>沒選人時，圓點越大代表作品越多。</li>
+          <li>資料來自公開的作品出演紀錄，次數是已知作品的下限。</li>
+        </ul>` },
+      { t: "點一個人＝選取，他就成為原點", target: () => anchorBox(false), act: () => demo({ mode: "2d", sel: true, side: true }), html: `
+        <ul>
+          <li>點任何一顆圓點，或點右側排行榜的名字，就是<b>選取</b>。再點空白處或按 <b>Esc</b> 取消。</li>
+          <li>選取的人會移到中心當<b>原點</b>，和他合作過的人（<b>夥伴</b>）圍著他重新排列；圓點大小也改成「和他合作的次數」。</li>
+          <li>右側面板會列出他的夥伴、作品紀錄與統計。</li>
+        </ul>` },
+      { t: "距離的含意：離原點越近＝合作越多次", target: () => anchorBox(true), soft: true, act: () => demo({ mode: "2d", sel: true, side: false }), html: `
+        <ul>
+          <li><b>離原點越近，合作次數越多</b>。每一圈虛線旁的 <b>×1、×2、×5、×10…</b> 就是那一圈的合作次數。</li>
+          <li>刻度是<b>對數</b>：前幾次的差距很大，越到後面越趨緩，所以內圈比較密、外圈比較疏。</li>
+          <li>和原點沒合作過的人會退到最外圍並淡出；想完全隱藏，可到「設定」勾選「原點排列時隱藏無關節點」。</li>
+        </ul>` },
+      { t: "2D 與 3D", target: "#modeBtn", act: () => demo({ mode: "3d", sel: true }), html: `
+        <ul>
+          <li>工具列最左邊的按鈕依序切換 <b>2D → 3D → 4D</b>（也可在設定的「檢視模式」直接選）。</li>
+          <li><b>2D</b> 是平面，距離＝合作次數。<b>3D</b> 把同樣的關係展開成立體的球殼：<b>半徑＝合作次數</b>，越近越契合。</li>
+          <li>3D／4D 可以<b>拖曳旋轉</b>、<b>Shift＋拖曳或右鍵平移</b>、滾輪縮放；點一下圓點選取。設定裡有「自動旋轉」開關。</li>
+        </ul>` },
+      { t: "4D：往上長的時間塔", target: "#modeBtn", act: () => demo({ mode: "4d", sel: true }), html: `
+        <ul>
+          <li>4D 多了<b>時間軸，由下往上長</b>。原點站在<b>塔底</b>，代表他的第一部作品。</li>
+          <li>夥伴的<b>高度＝和他第一次合作離現在多久</b>；<b>離中軸的水平距離＝合作次數</b>（越近越多）。畫面上有年份刻度可以對照。</li>
+          <li>所以你能一眼看出：誰是早期搭檔、誰是後來才加入卻合作很密的人。</li>
+        </ul>
+        <div class="note">取捨：為了讓「次數多＝一定比較近」永遠成立，晚期高契合者的高度會被壓縮一些，不會因為時間晚就被推遠。</div>` },
+      { t: "下方時間軸：播放、拖曳、點年份", target: "#bar", act: () => demo({ mode: "2d", sel: false }), html: `
+        <ul>
+          <li><b>▶</b> 從頭依作品日期一部一部長出整張圖（空白鍵＝播放／暫停）。</li>
+          <li>拖曳滑桿可前後移動；<b>點下方的年份，直接跳到那一年</b>；<b>←／→</b> 一部一部看。</li>
+          <li>播放速度在「設定」裡調整。</li>
+        </ul>` },
+      { t: "排行榜與搜尋", target: "#side", act: () => demo({ mode: "2d", sel: false, side: true }), html: `
+        <ul>
+          <li>右側是<b>排行榜</b>：女優看作品數與合作男優人數，男優看累計合作作品數。<b>點名字就是選取</b>。</li>
+          <li>要找特定的人：打開「設定 → 顯示過濾」，可以搜尋人名，或用「模糊搜尋」（漢字、假名、別名都行）。</li>
+        </ul>` },
+      { t: "設定", target: "#settings", act: () => demo({ mode: "2d", sel: false, side: false, settings: true }), html: `
+        <ul>
+          <li><b>檢視模式</b>、<b>以他為原點排列</b>與<b>隱藏無關節點</b>的開關都在這裡。</li>
+          <li>「強度設定」調整節點的集中、互斥與連線長度；「外觀設定」可調大小、文字，也能關掉大頭貼、動畫特效，以及切到 3D／4D 的「黑洞轉場」。</li>
+          <li>「顯示過濾」可只留下特定女優，或要求連線最少合作次數。右上的「重設」會全部還原。</li>
+        </ul>` },
+      { t: "統計：長條圖競賽與統計卡", target: "#statsBtn", need: "#statsBtn", act: () => demo({ mode: "2d", sel: false }), html: `
+        <ul>
+          <li>按「統計」會打開全螢幕分頁。<b>長條圖競賽</b>會依月份把前 12 名一路跑完：女優的累計作品、男優的累計合作作品、最強 CP 的累計合作次數。</li>
+          <li>下方可以暫停、重播、調速度，<b>點年份直接跳過去</b>。<b>統計卡</b>有每年作品量、新面孔、生涯長度與橋樑男優。</li>
+        </ul>` },
+      { t: "名詞表", wide: true, act: () => demo({ mode: "2d", sel: false }), html: `
+        <dl>
+          <dt>原點</dt><dd>你選取的那個人，所有人以他為中心重新排列。</dd>
+          <dt>夥伴</dt><dd>和原點合作過的人。</dd>
+          <dt>軌道</dt><dd>以原點為中心的虛線圈，每一圈代表一個合作次數。</dd>
+          <dt>契合度</dt><dd>本站用「累計合作作品數」當代理指標；這是比喻，不是量測。</dd>
+          <dt>對數刻度</dt><dd>次數越多，每多一次的影響越小，所以內圈密、外圈疏。</dd>
+          <dt>時間塔</dt><dd>4D 的垂直軸，由下往上＝由早到晚，原點在塔底。</dd>
+        </dl>` },
+    ];
+    // 之後新增的「統計」入口出現時，才會加入對應步驟
+    const visible = (sel) => { const e = typeof sel === "string" ? document.querySelector(sel) : null; return !!e && e.getClientRects().length > 0; }; // fixed 定位的元素 offsetParent 恆為 null，改看有沒有版面框
+
+    const veil = document.createElement("div"); veil.id = "tourVeil"; veil.hidden = true;
+    const hole = document.createElement("div"); hole.id = "tourHole"; hole.hidden = true;
+    const card = document.createElement("div"); card.id = "tourCard"; card.className = "panel";
+    card.setAttribute("role", "dialog"); card.setAttribute("aria-modal", "true"); card.setAttribute("aria-labelledby", "tourT");
+    card.innerHTML = '<div class="tn"><span id="tourN"></span><i id="tourP"></i></div><h2 id="tourT"></h2><div class="tb" id="tourB"></div><div class="tf"><button type="button" class="ghost" id="tourSkip">跳過導覽</button><span class="sp"></span><button type="button" id="tourPrev">上一步</button><button type="button" class="primary" id="tourNext">下一步</button></div>';
+    veil.append(hole, card); document.body.append(veil);
+    const hint = document.createElement("div"); hint.id = "tourHint"; hint.className = "panel"; hint.hidden = true;
+    hint.innerHTML = '<span>第一次來？1 分鐘看懂這張圖怎麼讀</span><button type="button" class="primary" id="hintGo">開始導覽</button><button type="button" class="ghost" id="hintNo">不用了</button>';
+    document.body.append(hint);
+
+    let list = [], cur = 0, active = false, saved = null, timer = 0;
+    const markSeen = () => { try { localStorage.setItem(TOUR_SEEN, "1"); } catch (e) { /* ignore */ } };
+    const targetRect = (s) => {
+      let r = null;
+      if (typeof s.target === "function") r = s.target();
+      else if (s.target && visible(s.target)) { const b = document.querySelector(s.target).getBoundingClientRect(); r = { left: b.left, top: b.top, width: b.width, height: b.height }; }
+      return r && r.width > 0 && r.height > 0 ? r : null;
+    };
+    function place() {
+      if (!active) return;
+      const s = list[cur], r = targetRect(s), pad = s.soft ? 0 : 6, m = 12;
+      veil.classList.toggle("dim", !r);
+      hole.hidden = !r;
+      if (r) {
+        hole.classList.toggle("soft", !!s.soft);
+        Object.assign(hole.style, { left: r.left - pad + "px", top: r.top - pad + "px", width: r.width + pad * 2 + "px", height: r.height + pad * 2 + "px" });
+      }
+      const cw = card.offsetWidth, ch = card.offsetHeight, vw = innerWidth, vh = innerHeight;
+      let x, y;
+      if (matchMedia("(max-width: 700px)").matches) { // 手機：底部抽屜；目標在下半部就改放最上面
+        x = m; card.style.width = vw - m * 2 + "px";
+        y = r && r.top + r.height / 2 > vh / 2 ? m : vh - ch - m;
+      } else {
+        card.style.width = "";
+        if (!r) { x = (vw - cw) / 2; y = (vh - ch) / 2; }
+        else {
+          const fit = (px, py) => px >= m && py >= m && px + cw <= vw - m && py + ch <= vh - m;
+          const cx = r.left + r.width / 2 - cw / 2, cy = r.top + r.height / 2 - ch / 2, g = 18 + pad;
+          const opts = [[cx, r.top + r.height + g], [cx, r.top - ch - g], [r.left - cw - g, cy], [r.left + r.width + g, cy]];
+          const hit = opts.find(([px, py]) => fit(px, py));
+          [x, y] = hit || [Math.min(Math.max(m, cx), vw - cw - m), Math.min(Math.max(m, vh - ch - m), vh - ch - m)];
+        }
+        x = Math.min(Math.max(m, x), Math.max(m, vw - cw - m)); y = Math.min(Math.max(m, y), Math.max(m, vh - ch - m));
+      }
+      card.style.left = x + "px"; card.style.top = y + "px";
+    }
+    function show(i, dir) {
+      cur = Math.max(0, Math.min(list.length - 1, i));
+      const s = list[cur];
+      s.act && s.act();
+      card.classList.toggle("wide", !!s.wide);
+      $("tourN").textContent = `第 ${cur + 1} ／ ${list.length} 步`;
+      $("tourP").style.setProperty("--p", ((cur + 1) / list.length) * 100 + "%");
+      $("tourT").textContent = s.t; $("tourB").innerHTML = s.html;
+      $("tourPrev").disabled = cur === 0;
+      $("tourNext").textContent = cur === list.length - 1 ? "完成" : "下一步";
+      card.scrollTop = 0;
+      place();
+      clearTimeout(timer);
+      if (typeof s.target === "function") timer = setTimeout(place, 1100); // 排列轉場結束後，洞再貼上節點
+      if (motion) A.animate(card, { opacity: [0, 1], translateY: [dir < 0 ? -8 : 8, 0], duration: 260, ease: "outCubic" });
+      $("tourNext").focus({ preventScroll: true });
+    }
+    function start() {
+      if (active) return;
+      hint.hidden = true; markSeen();
+      if (statsOpen) $("statsBtn").click();
+      saved = { mode, sel: selected, idx, playing, settings: !$("settings").hidden, side: !$("side").hidden };
+      list = STEPS.filter((s) => !s.need || visible(s.need));
+      active = true; veil.hidden = false; $("tourBtn").setAttribute("aria-pressed", "true");
+      show(0, 1);
+    }
+    function stop() {
+      if (!active) return;
+      active = false; clearTimeout(timer); veil.hidden = true; hole.hidden = true; $("tourBtn").setAttribute("aria-pressed", "false");
+      const o = saved; saved = null;
+      if (mode !== o.mode) setMode(o.mode, false, true);
+      const sel = o.sel && o.sel.alive ? o.sel : null;
+      if (selected !== sel) select(sel);
+      setSettingsOpen(o.settings);
+      if (o.side === $("side").hidden) $("rankBtn").click();
+      go(o.idx, false); setPlaying(o.playing);
+      $("tourBtn").focus({ preventScroll: true });
+    }
+    $("tourBtn").addEventListener("click", () => (active ? stop() : start()));
+    $("tourNext").addEventListener("click", () => (cur >= list.length - 1 ? stop() : show(cur + 1, 1)));
+    $("tourPrev").addEventListener("click", () => show(cur - 1, -1));
+    $("tourSkip").addEventListener("click", stop);
+    $("hintGo").addEventListener("click", start);
+    $("hintNo").addEventListener("click", () => { hint.hidden = true; markSeen(); });
+    addEventListener("resize", place);
+    // 導覽期間吃掉全域快捷鍵（空白鍵播放、←／→ 換作品、Esc 取消選取），改為導覽的操作
+    addEventListener("keydown", (e) => {
+      if (!active) return;
+      if (e.key === "Tab") {
+        const bs = [...card.querySelectorAll("button:not([disabled])")], i = bs.indexOf(document.activeElement);
+        if (bs.length) { e.preventDefault(); bs[(i + (e.shiftKey ? -1 : 1) + bs.length) % bs.length].focus(); }
+        return;
+      }
+      if (e.key === "Escape") stop();
+      else if (e.key === "ArrowRight") $("tourNext").click();
+      else if (e.key === "ArrowLeft") $("tourPrev").click();
+      else if (e.key === " " || e.key === "Enter") { if (!(document.activeElement instanceof HTMLButtonElement)) $("tourNext").click(); return; }
+      else return;
+      e.preventDefault(); e.stopImmediatePropagation();
+    }, true);
+    // 第一次來：開場動畫結束後，在底部輕輕問一次（略過開場的測試／捷徑網址不問）
+    let seen = false;
+    try { seen = localStorage.getItem(TOUR_SEEN) === "1"; } catch (e) { /* 無儲存就每次都問 */ }
+    if (!seen && !/nointro/.test(location.hash)) {
+      let tries = 0;
+      const ask = () => { if (active) return; if (intro.on && tries++ < 30) { setTimeout(ask, 500); return; } hint.hidden = false; };
+      setTimeout(ask, 1500);
+    }
+  }
+  // ── 統計：長條圖競賽（逐月累計、前 12 名換位）＋四張統計卡 ──
+  {
+    const K = 12, BASE = 4; // 同時顯示 12 名；1× 速度＝每秒 4 個月
+    const PAL = ["#ff5fa8", "#a595ff", "#6fd0ff", "#ffb86b", "#7be0b0", "#f27cff", "#ff8a7a", "#8aa4ff", "#ffd36b", "#5fd8d0"];
+    const TITLES = { actress: "女優累計作品數", male: "男優累計合作作品數", pair: "最強 CP 累計合作次數" };
+    const ymOf = (d) => +d.slice(0, 4) * 12 + (+d.slice(5, 7) - 1);
+    const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+    let D = null; // 第一次打開時才計算
+    function build() {
+      const m0 = ymOf(works[0].date), nM = ymOf(works[N - 1].date) - m0 + 1;
+      const mk = (name, kind, extra) => ({ name, kind, arr: new Uint16Array(nM), color: PAL[hash(name) % PAL.length], y: -1, v: 0, ...extra });
+      const act = new Map(), male = new Map(), pc = new Map(), partners = new Map(), span = new Map();
+      const perYear = new Map(), newA = new Map(), newM = new Map();
+      const yr = (y) => { let r = perYear.get(y); if (!r) perYear.set(y, r = { works: 0, acts: new Set() }); return r; };
+      for (const w of works) {
+        const mi = ymOf(w.date) - m0, y = +w.date.slice(0, 4), py = yr(y);
+        py.works++;
+        for (const a of w.actresses) {
+          let e = act.get(a); if (!e) { act.set(a, e = mk(a, "A")); newA.set(y, (newA.get(y) || 0) + 1); span.set(a, [w.date, w.date]); }
+          e.arr[mi]++; span.get(a)[1] = w.date; py.acts.add(a);
+        }
+        for (const m of w.males) {
+          let e = male.get(m); if (!e) { male.set(m, e = mk(m, "M")); newM.set(y, (newM.get(y) || 0) + 1); partners.set(m, new Set()); }
+          e.arr[mi]++;
+          for (const a of w.actresses) { const k = a + "\u0001" + m; pc.set(k, (pc.get(k) || 0) + 1); partners.get(m).add(a); }
+        }
+      }
+      const top = [...pc].sort((x, y) => y[1] - x[1]).slice(0, 300);
+      const pm = new Map(top.map(([k]) => { const [a, m] = k.split("\u0001"); return [k, mk(`${a} × ${m}`, "P", { a, m })]; }));
+      for (const w of works) {
+        const mi = ymOf(w.date) - m0;
+        for (const m of w.males) for (const a of w.actresses) { const e = pm.get(a + "\u0001" + m); if (e) e.arr[mi]++; }
+      }
+      const sets = { actress: [...act.values()], male: [...male.values()], pair: [...pm.values()] };
+      for (const list of Object.values(sets)) for (const e of list) for (let i = 1; i < nM; i++) e.arr[i] += e.arr[i - 1];
+      const years = [...perYear.keys()].sort((a, b) => a - b);
+      D = {
+        m0, nM, sets, years,
+        yearly: years.map((y) => ({ y, a: perYear.get(y).works, b: perYear.get(y).acts.size })),
+        faces: years.map((y) => ({ y, a: newA.get(y) || 0, b: newM.get(y) || 0 })),
+        career: [...span].map(([n, [f, l]]) => ({ n, f, l, months: ymOf(l) - ymOf(f) })).sort((a, b) => b.months - a.months).slice(0, 10),
+        bridge: [...partners].map(([n, s]) => ({ n, c: s.size, w: male.get(n).arr[nM - 1] })).sort((a, b) => b.c - a.c || b.w - a.w).slice(0, 10),
+        nA: act.size,
+      };
+    }
+    const monthOf = (i) => { const v = D.m0 + i; return [Math.floor(v / 12), (v % 12) + 1]; };
+
+    // ── 競賽引擎 ──
+    const cv = $("race"), box = $("raceBox"), rctx = cv.getContext("2d");
+    let flash = null, leadName = "", metric = "actress", cur = [], t = 0, rPlaying = false, speed = 1, axis = 1, snap = true, raf = 0, lastT = 0, lastYear = 0, tab = "race";
+    const imgOf = (name) => { const im = avatarImages[name]; return im && im.complete && im.naturalWidth ? im : null; };
+    const niceStep = (x) => { const p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p; return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p; };
+    const rrect = (c, x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); };
+    function icon(c, x, y, r, name, kind, color) {
+      c.save(); c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.closePath();
+      c.fillStyle = kind === "M" ? (TH.dark ? "rgba(190,175,255,.3)" : "rgba(106,61,240,.22)") : "rgba(255,95,168,.4)"; c.fill();
+      c.clip();
+      const im = imgOf(name);
+      if (im) c.drawImage(im, x - r, y - r, r * 2, r * 2);
+      else if (kind === "M") { // 沒有大頭貼：人形剪影
+        c.fillStyle = TH.dark ? "rgba(243,240,255,.75)" : "rgba(60,40,120,.6)";
+        c.beginPath(); c.arc(x, y - r * 0.2, r * 0.3, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.ellipse(x, y + r * 0.7, r * 0.6, r * 0.45, 0, 0, Math.PI * 2); c.fill();
+      } else { c.fillStyle = TH.label; c.font = `700 ${r}px ${FONT}`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(name.slice(0, 1), x, y + 1); }
+      c.restore();
+      c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.lineWidth = 2; c.strokeStyle = color; c.stroke();
+    }
+    const fit = (c, s, w) => { if (c.measureText(s).width <= w) return s; while (s.length > 1 && c.measureText(s + "…").width > w) s = s.slice(0, -1); return s + "…"; };
+    function draw(dt) {
+      const w = box.clientWidth, h = box.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+      const c = rctx; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+      const ti = Math.min(D.nM - 1, Math.max(0, t)), i0 = Math.floor(ti), f = ti - i0, i1 = Math.min(D.nM - 1, i0 + 1);
+      for (const e of cur) e.v = e.arr[i0] + (e.arr[i1] - e.arr[i0]) * f;
+      cur.sort((a, b) => b.v - a.v || (a.name < b.name ? -1 : 1));
+      const lead = cur[0].name;
+      if (leadName && lead !== leadName && !snap && rPlaying) flash = { txt: `${lead} 登上第一，超越 ${leadName}`, left: 2800 };
+      leadName = lead;
+      const k = snap || reduce ? 1 : 1 - Math.exp(-dt / 120);
+      const narrow = w < 560;
+      const padL = narrow ? Math.max(92, w * 0.26) : Math.max(120, Math.min(200, w * 0.2)), padR = narrow ? 56 : 86, padT = narrow ? 64 : 64, padB = 14;
+      const rowH = Math.min(58, (h - padT - padB) / K), barH = rowH * 0.66, bw = w - padL - padR, fs = Math.max(11, Math.min(15, rowH * 0.36));
+      cur.forEach((e, rank) => { const ty = rank < K ? rank : K + 0.7; e.y = e.y < 0 || snap ? ty : e.y + (ty - e.y) * k; });
+      const target = Math.max(1, cur[0].v) * 1.1;
+      axis = snap || reduce ? target : axis + (target - axis) * (1 - Math.exp(-dt / 280));
+      snap = false;
+      // 標題
+      c.textBaseline = "alphabetic"; c.textAlign = "left";
+      c.fillStyle = TH.label; c.font = `700 ${narrow ? 15 : 19}px ${FONT}`; c.fillText(`${TITLES[metric]}　前 ${K} 名`, 18, narrow ? 22 : 32);
+      const [yy, mm] = monthOf(Math.round(ti));
+      c.fillStyle = TH.muted; c.font = `${narrow ? 11 : 12}px ${FONT}`; c.fillText(`累計到 ${yy} 年 ${mm} 月底`, 18, narrow ? 38 : 52);
+      if (flash && !narrow) { // 換榜提示：右上角淡出
+        flash.left -= dt; if (flash.left <= 0) flash = null;
+        else {
+          c.globalAlpha = Math.min(1, flash.left / 600); c.textAlign = "right"; c.textBaseline = "alphabetic"; c.font = `700 14px ${FONT}`;
+          const tw = c.measureText(flash.txt).width; c.fillStyle = TH.accent; rrect(c, w - 18 - tw - 24, 12, tw + 24, 30, 15); c.globalAlpha *= 0.22; c.fill();
+          c.globalAlpha = Math.min(1, flash.left / 600); c.fillStyle = TH.label; c.fillText(flash.txt, w - 30, 32); c.globalAlpha = 1;
+        }
+      } else if (narrow) flash = null;
+      // 軸線與刻度
+      const step = niceStep(axis / 5);
+      c.font = `11px ${FONT}`; c.textAlign = "center";
+      for (let v = step; v < axis; v += step) {
+        const x = padL + (v / axis) * bw;
+        c.strokeStyle = TH.line; c.lineWidth = 1; c.beginPath(); c.moveTo(x, padT - 6); c.lineTo(x, h - padB); c.stroke();
+        c.fillStyle = TH.muted; c.fillText(String(Math.round(v)), x, padT - 12);
+      }
+      c.strokeStyle = TH.muted; c.globalAlpha = .5; c.beginPath(); c.moveTo(padL, padT - 6); c.lineTo(padL, h - padB); c.stroke(); c.globalAlpha = 1;
+      // 大字年份（放在右下角，很淡）
+      c.textAlign = "right"; c.fillStyle = TH.label; c.globalAlpha = .13;
+      c.font = `800 ${Math.min(150, h * 0.3)}px ${FONT}`; c.fillText(String(yy), w - 16, h - Math.min(150, h * 0.3) * 0.22 - 22);
+      c.globalAlpha = .5; c.font = `700 ${Math.min(34, h * 0.07)}px ${FONT}`; c.fillText(`${mm} 月`, w - 20, h - 18); c.globalAlpha = 1;
+      // 長條：由下往上畫，前幾名蓋在最上層
+      for (let r = cur.length - 1; r >= 0; r--) {
+        const e = cur[r];
+        if (e.y > K + 0.6) continue;
+        const a = e.y > K - 0.4 ? Math.max(0, K + 0.6 - e.y) : 1;
+        const cy = padT + e.y * rowH + rowH / 2, len = Math.max(3, (e.v / axis) * bw), tip = padL + len;
+        c.globalAlpha = a;
+        const g = c.createLinearGradient(padL, 0, tip, 0); g.addColorStop(0, e.color + "66"); g.addColorStop(1, e.color);
+        c.fillStyle = g; rrect(c, padL, cy - barH / 2, len, barH, barH * 0.28); c.fill();
+        c.textAlign = "right"; c.textBaseline = "middle"; c.fillStyle = TH.label; c.font = `600 ${fs}px ${FONT}`;
+        c.fillText(fit(c, e.name, padL - 14), padL - 10, cy);
+        const ir = Math.min(barH * 0.62, 22);
+        let after = tip + ir + 6;
+        if (e.kind === "P") { icon(c, tip + ir * 0.9, cy, ir, e.m, "M", e.color); icon(c, tip, cy, ir, e.a, "A", e.color); after = tip + ir * 0.9 + ir + 6; }
+        else icon(c, tip, cy, ir, e.name, e.kind, e.color);
+        c.textAlign = "left"; c.textBaseline = "middle"; c.font = `700 ${fs + 1}px ${FONT}`; c.fillStyle = TH.label;
+        c.fillText(String(Math.round(e.v)), after, cy);
+        c.globalAlpha = 1;
+      }
+    }
+    function syncUI() {
+      const i = Math.min(D.nM - 1, Math.max(0, Math.floor(t)));
+      $("rcSlider").value = i;
+      const y = monthOf(i)[0];
+      for (const b of $("rcYears").children) b.classList.toggle("on", +b.dataset.y === y);
+      if (y !== lastYear) { lastYear = y; const lead = cur[0]; if (lead) $("rcLive").textContent = `${y} 年：${lead.name} 領先，${Math.round(lead.v)}`; }
+      const label = rPlaying ? "暫停" : "播放";
+      if ($("rcPlay").dataset.s !== label) {
+        $("rcPlay").dataset.s = label; $("rcPlay").setAttribute("aria-label", label);
+        $("rcPlay").innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">${rPlaying ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>' : '<path d="M8 5l11 7-11 7z"/>'}</svg>${label}`;
+      }
+    }
+    function loop(now) {
+      if (!statsOpen) { raf = 0; return; }
+      const dt = Math.min(100, now - lastT); lastT = now;
+      if (tab === "race") {
+        if (rPlaying && !reduce) { t += (dt / 1000) * BASE * speed; if (t >= D.nM - 1) { t = D.nM - 1; rPlaying = false; } }
+        draw(dt); syncUI();
+      }
+      raf = requestAnimationFrame(loop);
+    }
+    function setMetric(m) {
+      metric = m; cur = D.sets[m]; for (const e of cur) e.y = -1;
+      for (const b of document.querySelectorAll("#raceView [data-metric]")) b.setAttribute("aria-pressed", String(b.dataset.metric === m));
+      snap = true; flash = null; leadName = ""; lastYear = 0; // 換主題：停在原本的時間點與播放狀態
+    }
+    function restart() { snap = true; lastYear = 0; flash = null; leadName = ""; if (reduce) { t = D.nM - 1; rPlaying = false; } else { t = 0; rPlaying = true; } }
+    function jump(i) { t = Math.max(0, Math.min(D.nM - 1, i)); snap = true; }
+    function buildYears() {
+      const el = $("rcYears"); el.textContent = "";
+      const width = el.clientWidth || box.clientWidth, minGap = (34 / Math.max(1, width)) * 100;
+      let lastPct = -99;
+      for (const y of D.years) {
+        const i = Math.max(0, (y * 12 - D.m0)), pct = (i / (D.nM - 1)) * 100;
+        const b = document.createElement("button"); b.type = "button"; b.dataset.y = y; b.dataset.i = i;
+        b.title = b.ariaLabel = `跳到 ${y} 年`; b.textContent = y; b.style.left = pct + "%";
+        if (pct - lastPct < minGap) b.className = "mini"; else lastPct = pct;
+        el.append(b);
+      }
+    }
+    $("rcYears").addEventListener("click", (e) => { const b = e.target.closest("button[data-i]"); if (b) jump(+b.dataset.i); });
+    $("rcSlider").addEventListener("input", (e) => jump(+e.target.value));
+    $("rcPlay").addEventListener("click", () => { if (t >= D.nM - 1) { jump(0); rPlaying = true; } else rPlaying = !rPlaying; });
+    $("rcRestart").addEventListener("click", restart);
+    $("rcSpeed").addEventListener("change", (e) => { speed = +e.target.value; });
+    for (const b of document.querySelectorAll("#raceView [data-metric]")) b.addEventListener("click", () => setMetric(b.dataset.metric));
+    addEventListener("resize", () => { if (statsOpen && D) { buildYears(); snap = true; } });
+
+    // ── 統計卡 ──
+    const X = (s) => String(s).replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+    function seriesChart(rows, o) { // rows: [{y,a,b}]；a 一律畫長條，b 依 o.line 畫折線或第二組長條
+      const Wd = 460, Ht = 210, L = 40, R = 40, T = 16, B = 24, iw = Wd - L - R, ih = Ht - T - B, n = rows.length, bw = iw / n;
+      const ma0 = Math.max(1, ...rows.map((r) => r.a)), mb = o.line ? Math.max(1, ...rows.map((r) => r.b)) : 1;
+      const ma = o.line ? ma0 : Math.max(ma0, ...rows.map((r) => r.b));
+      let s = `<svg viewBox="0 0 ${Wd} ${Ht}" role="img" aria-label="${X(o.label)}">`;
+      for (let g = 1; g <= 3; g++) { const y = T + ih * (1 - g / 3); s += `<line x1="${L}" x2="${Wd - R}" y1="${y}" y2="${y}" style="stroke:var(--line)"/>`; }
+      rows.forEach((r, i) => {
+        const x = L + i * bw, hA = (ih * r.a) / ma;
+        if (o.line) s += `<rect x="${x + bw * 0.15}" y="${T + ih - hA}" width="${bw * 0.7}" height="${hA}" rx="2" style="fill:var(--accent);opacity:.85"><title>${r.y}：${r.a} ${o.unitA}</title></rect>`;
+        else {
+          const hB = (ih * r.b) / ma;
+          s += `<rect x="${x + bw * 0.1}" y="${T + ih - hA}" width="${bw * 0.38}" height="${hA}" rx="1.5" style="fill:var(--pink)"><title>${r.y}：${r.a} ${o.unitA}</title></rect><rect x="${x + bw * 0.52}" y="${T + ih - hB}" width="${bw * 0.38}" height="${hB}" rx="1.5" style="fill:var(--accent)"><title>${r.y}：${r.b} ${o.unitB}</title></rect>`;
+        }
+        if (i % Math.ceil(n / 8) === 0 || i === n - 1) s += `<text x="${x + bw / 2}" y="${Ht - 6}" text-anchor="middle">${r.y}</text>`;
+      });
+      if (o.line) {
+        const pts = rows.map((r, i) => [L + i * bw + bw / 2, T + ih * (1 - r.b / mb)]);
+        s += `<polyline points="${pts.map((p) => p.join(",")).join(" ")}" fill="none" stroke-width="2" style="stroke:var(--pink)"/>` + pts.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="2.6" style="fill:var(--pink)"><title>${rows[i].y}：${rows[i].b} ${o.unitB}</title></circle>`).join("");
+        s += `<text x="${Wd - R + 6}" y="${T + 4}" style="fill:var(--pink)">${mb} ${o.unitB}</text>`;
+      }
+      s += `<text x="${L - 6}" y="${T + 4}" text-anchor="end" style="fill:${o.line ? "var(--accent)" : "var(--muted)"}">${ma}</text></svg>`;
+      return s;
+    }
+    function hbars(items, max, label) { // items: [{l, v, t}]
+      const rh = 26, Wd = 460, L = 130, R = 124, iw = Wd - L - R;
+      let s = `<svg viewBox="0 0 ${Wd} ${items.length * rh + 4}" role="img" aria-label="${X(label)}">`;
+      items.forEach((it, i) => {
+        const y = i * rh + 2, bwid = Math.max(3, (it.v / max) * iw);
+        s += `<text class="t" x="${L - 8}" y="${y + 16}" text-anchor="end">${X(it.l.length > 11 ? it.l.slice(0, 11) + "…" : it.l)}</text><rect x="${L}" y="${y + 4}" width="${bwid}" height="${rh - 9}" rx="4" style="fill:${i % 2 ? "var(--accent)" : "var(--pink)"};opacity:.9"/><text x="${L + bwid + 6}" y="${y + 16}">${X(it.t)}</text>`;
+      });
+      return s + "</svg>";
+    }
+    let cardsDone = false;
+    function renderCards() {
+      if (cardsDone) return; cardsDone = true;
+      const yFirst = D.years[0];
+      const yy2 = (d) => d.slice(2, 4);
+      const cards = [
+        { h: "每年作品量與活躍女優數", svg: seriesChart(D.yearly, { line: true, unitA: "部", unitB: "位", label: "每年作品數與活躍女優數" }),
+          p: `長條是當年的作品數（左軸）、折線是當年至少有一部作品的女優人數（右軸）。資料範圍是有男優資料的作品與其中 ${D.nA} 位女優，所以只代表「這張圖看得到的範圍」。` },
+        { h: "每年的新面孔", svg: seriesChart(D.faces, { line: false, unitA: "位女優", unitB: "位男優", label: "每年新出現的女優與男優" }) + `<p style="margin:0;font-size:12px"><span style="color:var(--pink)">■</span> 新女優　<span style="color:var(--accent)">■</span> 新男優</p>`,
+          p: `每年第一次出現的人數。女優＝她在收錄資料裡的第一部作品；男優＝他第一次和這些女優合作（不一定是他真正的出道年）。${yFirst} 年是資料起點，所以最早那年會偏多。` },
+        { h: "生涯長度前 10", svg: hbars(D.career.map((r) => ({ l: r.n, v: r.months, t: `${(r.months / 12).toFixed(1)} 年（${yy2(r.f)}–${yy2(r.l)}）` })), D.career[0].months, "女優生涯長度前十名"),
+          p: "從收錄資料裡第一部到最後一部作品的時間差（括號內是起訖年份的後兩碼）。最後一部若是預告中的作品，日期可能比今天晚。" },
+        { h: "橋樑男優前 10", svg: hbars(D.bridge.map((r) => ({ l: r.n, v: r.c, t: `${r.c} 位女優・${r.w} 部` })), D.bridge[0].c, "合作過最多女優的男優前十名"),
+          p: "合作過最多位不同女優的男優。他們像橋一樣，把原本各自一群的女優串成同一張大圖。" },
+      ];
+      $("cardGrid").innerHTML = cards.map((c) => `<article class="scard"><h3>${X(c.h)}</h3>${c.svg}<p>${X(c.p)}</p></article>`).join("");
+    }
+
+    // ── 開關面板 ──
+    function setTab(name) {
+      tab = name;
+      for (const b of document.querySelectorAll('#stats [role="tab"]')) b.setAttribute("aria-selected", String(b.dataset.tab === name));
+      $("raceView").hidden = name !== "race"; $("cardsView").hidden = name !== "cards";
+      if (name === "cards") renderCards(); else { snap = true; buildYears(); }
+    }
+    function openStats() {
+      if (statsOpen) return;
+      if (!D) { build(); cur = D.sets[metric]; t = D.nM - 1; snap = true; $("rcSlider").max = D.nM - 1; $("rcNote").textContent = `資料範圍：有男優資料的 ${N} 部作品、${D.nA} 位女優；次數是已知作品的下限。`; }
+      statsOpen = true; $("stats").hidden = false; $("statsBtn").setAttribute("aria-pressed", "true"); document.body.classList.add("stats-open");
+      setTab(tab); lastT = performance.now(); if (!raf) raf = requestAnimationFrame(loop);
+      if (motion) A.animate($("stats"), { opacity: [0, 1], duration: 260, ease: "outCubic" });
+      document.querySelector('#stats [role="tab"][aria-selected="true"]').focus({ preventScroll: true });
+    }
+    function closeStats() {
+      if (!statsOpen) return;
+      statsOpen = false; rPlaying = false; $("stats").hidden = true; $("statsBtn").setAttribute("aria-pressed", "false"); document.body.classList.remove("stats-open"); $("statsBtn").focus({ preventScroll: true });
+    }
+    $("statsBtn").addEventListener("click", () => (statsOpen ? closeStats() : openStats()));
+    // 統計開著時，工具列其他按鈕（模式、排行、置中、設定）＝先回到圖再執行；深淺色切換就地生效
+    $("tools").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (statsOpen && b && ["modeBtn", "rankBtn", "fitBtn", "setBtn"].includes(b.id)) closeStats();
+    }, true);
+    for (const b of document.querySelectorAll('#stats [role="tab"]')) b.addEventListener("click", () => setTab(b.dataset.tab));
+    addEventListener("keydown", (e) => {
+      if (!statsOpen) return;
+      if (e.key === "Escape") closeStats();
+      else if (tab === "race" && e.key === " " && !(document.activeElement instanceof HTMLButtonElement)) $("rcPlay").click();
+      else if (tab === "race" && e.key === "ArrowRight") jump(Math.floor(t) + 1);
+      else if (tab === "race" && e.key === "ArrowLeft") jump(Math.floor(t) - 1);
+      else return;
+      e.preventDefault(); e.stopImmediatePropagation();
+    }, true);
+    onTheme = ((prev) => () => { prev(); if (statsOpen) snap = true; })(onTheme);
+    // 測試掛勾：回傳指定月份（0 起算）時各主題的前 n 名與數值
+    window.__graph.race = {
+      get nM() { return D && D.nM; },
+      get m0() { return D && D.m0; },
+      top(m, i, n) { if (!D) build(); return D.sets[m].map((e) => ({ name: e.name, v: e.arr[i] })).sort((a, b) => b.v - a.v || (a.name < b.name ? -1 : 1)).slice(0, n); },
+      get t() { return t; }, setT: (v) => jump(v), pause: () => { rPlaying = false; }, metric: () => metric,
+    };
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+
+# 資料、快取、產物（自行蒐集與建置，不放進版本庫）
+data/
+names/
+graph.html
+graph_data.json
+graph_data_multi.json
+costars.csv
+vendor_build/

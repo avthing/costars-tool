@@ -185,9 +185,17 @@ def pick_date(*cands):
 
 def load_actress(name, path=None):
     """回傳 ([{code,date,title,text,tags}], 無日期品番清單)。"""
-    path = path or ROOT / "data" / f"wiki_works_{name}.csv"
+    rows = read_csv(path or ROOT / "data" / f"wiki_works_{name}.csv")
+    upd = ROOT / "data" / "updates" / f"wiki_works_{name}.csv"  # --update 增量模式另存的新作
+    if path is None and upd.exists():
+        seen = {norm_code(r.get("メーカー品番") or r.get("配信品番") or "") for r in rows}
+        for r in read_csv(upd):
+            code = norm_code(r.get("メーカー品番") or r.get("配信品番") or "")
+            if code not in seen:  # 日後主 CSV 若已收進同一部就不重複計
+                seen.add(code)
+                rows.append(r)
     out, nodate = [], []
-    for r in read_csv(path):
+    for r in rows:
         code = norm_code(r.get("メーカー品番") or r.get("配信品番") or "")
         if not code:
             continue

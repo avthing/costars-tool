@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { csvToCards, cardKey, judgePage } from "./wiki_update.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,6 +13,7 @@ const MAX_CANDIDATES_PER_ACTRESS = 5;
 const MAX_FALLBACK_CANDIDATES = 3;
 const REST_EVERY_N_NAVIGATIONS = 100;
 const LONG_REST_MS = 90000;
+const UPDATE_DEFAULT_MAX_PAGES = 8;
 
 // 女優候選寫法預設對照表（相容既有單獨指令呼叫）
 const CANDIDATE_SPELLINGS = {
@@ -1544,6 +1546,71 @@ async function extendActress(displayName, maxPages = 120, dataDir) {
   console.log("==================================================");
 }
 
+// 增量更新：只翻搜尋結果最前面幾頁（新到舊），遇到「整頁都已收錄」就停。
+// 新作品另存 data/updates/wiki_works_<名>.csv，不動主 CSV 與頁面快取（--reparse 不受影響），merge_multi.py 會一併讀入。
+async function updateActresses(dataDir, only, maxPages) {
+  const startTime = Date.now();
+  const resolved = loadResolvedNames(dataDir).resolved;
+  const names = Object.keys(resolved).filter((n) => resolved[n].done && (only.length === 0 || only.includes(n)));
+  const missing = only.filter((n) => !resolved[n] || !resolved[n].done);
+  if (missing.length) console.warn(`[略過] 不在 resolved_names.json 或尚未完成: ${missing.join("、")}`);
+
+  console.log("==================================================");
+  console.log("avdanyuwiki 增量更新模式 (--update) 啟動");
+  console.log(`目標人數: ${names.length}｜每人最多翻 ${maxPages} 頁｜資料目錄: ${dataDir}`);
+  console.log("==================================================");
+
+  const updatesDir = path.join(dataDir, "updates");
+  const summary = [];
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    const wikiName = resolved[name].wiki_name || name;
+    currentActressName = name;
+
+    const readCards = (file) => (fs.existsSync(file) ? csvToCards(fs.readFileSync(file, "utf-8")) : []);
+    const updatesCsv = path.join(updatesDir, `wiki_works_${name}.csv`);
+    const prior = readCards(updatesCsv);
+    const known = new Set([...readCards(path.join(dataDir, `wiki_works_${name}.csv`)), ...prior].map(cardKey));
+    const isRelevant = (c) => isPerformerMatchingCandidate(c.performerText, wikiName);
+
+    const added = [];
+    let capped = false;
+    for (let page = 1; page <= maxPages; page++) {
+      currentPageNum = page;
+      updateCrawlState(dataDir, { currentActress: name, currentPage: page, status: "running_update" });
+      const url = `https://avdanyuwiki.com/?s=${encodeURIComponent(wikiName)}${page > 1 ? `&paged=${page}` : ""}`;
+      const { html } = await navigateTo(url, dataDir);
+      const { newCards, stop } = judgePage(parseCardsFromHtml(html), isRelevant, known);
+      for (const c of newCards) {
+        known.add(cardKey(c));
+        added.push(c);
+      }
+      console.log(`[${i + 1}/${names.length}] ${name} 第 ${page} 頁：新增 ${newCards.length} 部${stop ? "（整頁已收錄，停止）" : ""}`);
+      if (stop || !hasNextPage(html)) break;
+      if (page === maxPages) capped = true;
+    }
+    if (capped) console.warn(`[上限] ${name} 翻滿 ${maxPages} 頁仍有新作，可能還有更多；請加大 --max-pages 或改用 --extend`);
+
+    if (added.length) {
+      fs.mkdirSync(updatesDir, { recursive: true });
+      atomicWriteFileSync(updatesCsv, buildCsvContent([...prior, ...added]));
+    }
+    updateResolvedNames(dataDir, (d) => {
+      d.resolved[name].last_update = { at: new Date().toISOString(), new: added.length, capped };
+    });
+    summary.push({ name, added: added.length, capped });
+  }
+
+  if (cdpClient) cdpClient.close();
+  updateCrawlState(dataDir, { status: "completed_update", totalNavigations, finishedAt: new Date().toISOString() });
+
+  console.log("\n==================================================");
+  console.log("增量更新結果");
+  console.log("==================================================");
+  for (const s of summary) console.log(`- ${s.name}: 新增 ${s.added} 部${s.capped ? "（已達頁數上限）" : ""}`);
+  console.log(`- 合計新增: ${summary.reduce((n, s) => n + s.added, 0)} 部｜導航 ${totalNavigations} 次｜耗時 ${((Date.now() - startTime) / 1000).toFixed(1)} 秒｜驗證頁 ${verificationCount} 次`);
+}
+
 async function main() {
   const startTime = Date.now();
 
@@ -1552,7 +1619,9 @@ async function main() {
   let isReparse = false;
   let isUnresolved = false;
   let extendName = null;
-  let maxPages = 120;
+  let maxPages = null;
+  let isUpdate = false;
+  let onlyNames = [];
   const names = [];
 
   for (let i = 2; i < process.argv.length; i++) {
@@ -1573,6 +1642,12 @@ async function main() {
       maxPages = parseInt(process.argv[++i], 10);
     } else if (arg.startsWith("--max-pages=")) {
       maxPages = parseInt(arg.slice(12), 10);
+    } else if (arg === "--update") {
+      isUpdate = true;
+    } else if (arg === "--only" && i + 1 < process.argv.length) {
+      onlyNames = process.argv[++i].split(",").map((s) => s.trim()).filter(Boolean);
+    } else if (arg.startsWith("--only=")) {
+      onlyNames = arg.slice(7).split(",").map((s) => s.trim()).filter(Boolean);
     } else if (arg === "--reparse") {
       isReparse = true;
     } else if (arg === "--unresolved" || arg === "--recheck-unresolved") {
@@ -1585,8 +1660,13 @@ async function main() {
     }
   }
 
+  if (isUpdate) {
+    await updateActresses(dataDir, onlyNames, maxPages || UPDATE_DEFAULT_MAX_PAGES);
+    return;
+  }
+
   if (extendName) {
-    await extendActress(extendName, maxPages, dataDir);
+    await extendActress(extendName, maxPages || 120, dataDir);
     return;
   }
 

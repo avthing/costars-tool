@@ -119,6 +119,24 @@ button:hover, select:hover { border-color: var(--accent); background: var(--soft
 button:active { transform: scale(.96); background: var(--soft-2); }
 #tools button { border-color: transparent; }
 #tools button:hover { border-color: var(--line); }
+#searchBox { top: 16px; right: 330px; width: 320px; padding: 6px; border-radius: 14px; z-index: 27; }
+#searchBox[hidden] { display: none; }
+#searchBox input { width: 100%; height: 36px; padding: 0 12px; background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 10px; font: inherit; }
+#searchBox input::-webkit-search-cancel-button { display: none; }
+#sugList { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; max-height: min(52vh, 380px); overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+#sugList[hidden] { display: none; }
+#sugList li { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 6px 10px; border-radius: 10px; cursor: pointer; }
+#sugList li[aria-selected="true"], #sugList li:hover { background: var(--soft-2); box-shadow: inset 0 0 0 1px var(--accent); }
+#sugList .sa { width: 32px; height: 32px; flex: none; border-radius: 50%; object-fit: cover; display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #fff; background: linear-gradient(145deg, var(--bar), color-mix(in srgb, var(--bar) 45%, #000)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+#sugList .sa.a { background: linear-gradient(145deg, var(--pink), color-mix(in srgb, var(--pink) 45%, #000)); }
+#sugList img.sa { box-shadow: 0 0 0 1.5px var(--pink); }
+#sugList .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+#sugList .nm small { color: var(--muted); margin-left: 6px; font-size: 12px; }
+#sugList .ct { flex: none; text-align: right; font-size: 12px; line-height: 1.35; color: var(--muted); font-variant-numeric: tabular-nums; }
+#sugList .ct b { display: block; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--bar); }
+#sugList .ct b.a { color: var(--pink); }
+#sugList .empty { padding: 12px 10px; color: var(--muted); font-size: 13px; cursor: default; }
+#sugList .empty:hover { background: none; box-shadow: none; }
 #tools button[aria-pressed="true"] { background: var(--soft-2); border-color: var(--accent); color: var(--accent); }
 @media (pointer: coarse) { button, select { height: 44px; } button { min-width: 44px; } }
 button[aria-pressed="true"] { border-color: var(--accent); }
@@ -225,11 +243,7 @@ body.side-open #settings { right: 356px; }
 #aList { max-height: 190px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; margin-top: 4px; background: var(--soft); scrollbar-width: thin; }
 #aList label { display: flex; gap: 8px; align-items: center; padding: 3px 0; color: var(--text); cursor: pointer; }
 #aList input { accent-color: var(--accent); }
-#aFind { margin-top: 8px; }
-#aCnt { margin-left: auto; align-self: center; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-#aList label[hidden] { display: none; }
 #aList .aka { font-size: 11px; color: var(--muted); }
-#aList .none { padding: 8px 0; font-size: 12px; color: var(--muted); }
 .dn a.ext { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 5px; text-decoration-thickness: 2px; transition: text-decoration-color var(--dur) var(--ease); }
 .dn a.ext:hover { text-decoration-color: var(--accent); }
 .dn a.ext svg { display: inline-block; margin-left: 6px; vertical-align: -2px; opacity: .7; }
@@ -256,6 +270,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
 #bar { left: 16px; right: 16px; bottom: 16px; padding: 10px 16px; display: grid; gap: 6px; }
 #row { display: flex; align-items: center; gap: 10px; }
 #row #play { min-width: 40px; background: var(--accent); border-color: transparent; color: #fff; box-shadow: 0 8px 20px -8px var(--accent); }
+#row button[disabled] { opacity: .38; cursor: default; }
 #row #play:hover { background: var(--accent); filter: brightness(1.1); }
 #timeline { position: relative; flex: 1; min-width: 0; }
 #slider { width: 100%; margin: 0; }
@@ -302,14 +317,6 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
 .scard svg text { font-family: var(--font); font-size: 11px; fill: var(--muted); }
 .scard svg text.t { fill: var(--text); font-size: 12px; }
 
-/* 黑洞轉場（切到 3D／4D）：蓋在畫布上、面板下 */
-#bh { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
-#bh[hidden] { display: none; }
-#bh .bh-v { position: absolute; inset: 0; opacity: 0; background: radial-gradient(circle at var(--bx) var(--by), rgba(8, 4, 22, 0) 0, rgba(8, 4, 22, .38) 20%, rgba(5, 2, 14, .94) 78%); }
-#bh .bh-core { position: absolute; left: var(--bx); top: var(--by); width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); opacity: 0; transform: scale(0); }
-#bh .bh-ring { position: absolute; inset: -22%; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 6%, var(--pink) 18%, #ffe3f3 27%, var(--accent-2) 42%, transparent 56% 68%, var(--accent) 84%, transparent 100%); -webkit-mask: radial-gradient(circle, transparent 50%, #000 57%, #000 64%, transparent 71%); mask: radial-gradient(circle, transparent 50%, #000 57%, #000 64%, transparent 71%); filter: blur(1.5px) saturate(1.5); }
-#bh .bh-disc { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #000 0 62%, rgba(0, 0, 0, 0) 74%); box-shadow: 0 0 70px 16px rgba(165, 149, 255, .42), 0 0 160px 40px rgba(255, 95, 168, .22); }
-
 /* 互動導覽：遮罩＋挖洞（box-shadow）＋說明卡 */
 #tourVeil { position: fixed; inset: 0; z-index: 30; }
 #tourVeil[hidden] { display: none; }
@@ -354,6 +361,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
   #date { font-size: 22px; white-space: nowrap; flex: none; }
   #work { min-height: 0; flex: 1; min-width: 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #tools { top: 72px; }
+  #searchBox { top: 134px; left: 16px; right: 16px; width: auto; }
   #row { flex-wrap: wrap; row-gap: 4px; }
   #timeline { order: 3; flex: 1 1 100%; }
   #count { flex: 1; text-align: right; }
@@ -366,7 +374,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
 </head>
 <body>
 <canvas id="gl" aria-hidden="true"></canvas>
-<canvas id="c" role="img" aria-label="女優與合作男優的關聯圖，依作品日期逐步建立連線。可用右側排行或設定裡的搜尋來選取人物，並在詳細面板查看合作對象與作品紀錄"></canvas>
+<canvas id="c" role="img" aria-label="女優與合作男優的關聯圖，依作品日期逐步建立連線。可用右側排行或工具列的放大鏡搜尋來選取人物，並在詳細面板查看合作對象與作品紀錄"></canvas>
 
 <div class="panel" id="card">
   <h1 id="title"></h1>
@@ -375,6 +383,9 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
 </div>
 
 <div class="panel" id="tools">
+  <button type="button" id="searchBtn" aria-pressed="false" aria-label="搜尋人名" title="搜尋人名">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+  </button>
   <button type="button" id="modeBtn" aria-label="切換檢視模式（目前 2D）" title="切換 2D／3D／4D"><span id="modeTxt">2D</span></button>
   <button type="button" id="rankBtn" aria-pressed="true" aria-label="顯示或隱藏排行" title="排行">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
@@ -394,6 +405,11 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
   <button type="button" id="themeBtn" aria-label="切換深色或淺色" title="切換深色／淺色">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
   </button>
+</div>
+
+<div class="panel" id="searchBox" hidden>
+  <input type="search" id="setSearch" placeholder="搜尋人名（漢字、假名、別名皆可）" aria-label="搜尋人名" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="sugList" aria-autocomplete="list">
+  <ul id="sugList" role="listbox" aria-label="搜尋建議" hidden></ul>
 </div>
 
 <aside class="panel" id="side" aria-label="排行與詳細資料">
@@ -428,13 +444,10 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     <div id="viewExtra"><div id="g-view"></div><label class="chk"><input type="checkbox" id="spinChk"> 自動旋轉</label></div>
   </details>
   <details open><summary>強度設定</summary><div id="g-strength"></div></details>
-  <details open><summary>外觀設定</summary><div id="g-look"></div><label class="chk"><input type="checkbox" id="avatarChk"> 顯示大頭貼</label><label class="chk"><input type="checkbox" id="fxChk"> 動畫特效（開場、切換轉場、漣漪）</label><label class="chk"><input type="checkbox" id="holeChk"> 切到 3D／4D 時的黑洞轉場（需開啟動畫特效）</label></details>
+  <details open><summary>外觀設定</summary><div id="g-look"></div><label class="chk"><input type="checkbox" id="avatarChk"> 顯示大頭貼</label><label class="chk"><input type="checkbox" id="fxChk"> 動畫特效（開場、切換轉場、漣漪）</label><label class="chk"><input type="checkbox" id="holeChk"> 黑洞引力特效：3D／4D 選取一個人時（需開啟動畫特效）</label></details>
   <details><summary>顯示過濾</summary>
-    <input type="search" id="setSearch" list="nameList" placeholder="搜尋人名（選到會跳過去）" aria-label="搜尋人名">
-    <datalist id="nameList"></datalist>
     <div id="g-filter"></div>
-    <input type="search" id="aFind" placeholder="模糊搜尋女優（漢字／假名／別名皆可）" aria-label="模糊搜尋女優" autocomplete="off">
-    <div class="mini"><button type="button" id="aAll">女優全選</button><button type="button" id="aNone">全不選</button><span id="aCnt" aria-live="polite"></span></div>
+    <div class="mini"><button type="button" id="aAll">女優全選</button><button type="button" id="aNone">全不選</button></div>
     <div id="aList"></div>
   </details>
   <details open><summary>播放</summary>
@@ -499,7 +512,9 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     <button type="button" id="restart" aria-label="回到開頭" title="回到開頭">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
     </button>
+    <button type="button" id="prevWork" aria-label="上一部作品" title="上一部作品（←）"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14"/><path d="M19 6v12L9 12z"/></svg></button>
     <button type="button" id="play" aria-label="播放" title="播放／暫停（空白鍵）"></button>
+    <button type="button" id="nextWork" aria-label="下一部作品" title="下一部作品（→）"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 5v14"/><path d="M5 6v12l10-6z"/></svg></button>
     <div id="timeline">
       <input type="range" id="slider" min="0" value="0" step="1" aria-label="時間軸（依作品日期）">
       <div id="ticks" class="yrs" role="group" aria-label="跳到指定年份"></div>
@@ -588,13 +603,18 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     { g: "g-look", k: "textSize", label: "文字大小", min: 0.6, max: 2, step: 0.05, def: 1, dp: 2 },
     { g: "g-look", k: "textAlpha", label: "文字透明度", min: 0, max: 1, step: 0.05, def: 1, dp: 2 },
     { g: "g-look", k: "labelMax", label: "男優名稱顯示上限", min: 0, max: 500, step: 10, def: 220, dp: 0 },
+    { g: "g-look", k: "holeSpeed", label: "黑洞繞行速度（0＝暫停）", min: 0, max: 2, step: 0.05, def: 0.35, dp: 2 },
     { g: "g-view", k: "timeH", label: "4D 時間軸長度", min: 200, max: 1800, step: 50, def: 900, dp: 0 },
     { g: "g-filter", k: "minLink", label: "連線最少合作次數", min: 1, max: 10, step: 1, def: 1, dp: 0, recount: true },
     { g: "g-filter", k: "minMale", label: "男優最少出現作品數", min: 1, max: 10, step: 1, def: 1, dp: 0, recount: true },
   ];
-  const S = { speed: "1", hidden: [], mode: "2d", autoSpin: false, fx: true, showAvatars: true, ego: true, egoHide: false };
+  const S = { speed: "1", hidden: [], mode: "2d", autoSpin: false, fx: true, showAvatars: true, ego: true, egoHide: true, v: 2 };
   for (const sp of SPEC) S[sp.k] = sp.def;
-  try { Object.assign(S, JSON.parse(localStorage.getItem("graph-settings") || "{}")); } catch (e) { /* 無儲存也能用 */ }
+  try {
+    const saved = JSON.parse(localStorage.getItem("graph-settings") || "{}");
+    Object.assign(S, saved);
+    if (!(saved.v >= 2)) { S.egoHide = true; S.v = 2; } // v2：選到人之後預設隱藏無關的人（舊存檔一次性升級）
+  } catch (e) { /* 無儲存也能用 */ }
   const saveSettings = () => { try { localStorage.setItem("graph-settings", JSON.stringify(S)); } catch (e) { /* ignore */ } };
   const hiddenA = new Set(S.hidden);
   let mode = ["2d", "3d", "4d"].includes(S.mode) ? S.mode : "2d"; // 2d 平面｜3d 力導向球雲｜4d 地面是關係圖、高度是首次合作時間
@@ -1256,10 +1276,11 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     if (!flat) prepCam();
     const cx = W / 2 + view.x, cy = H / 2 + view.y, z = view.zoom;
     const s = intro.on ? 0.04 + 0.96 * intro.t : 1; // 開場：整張圖從中心展開
+    const orb = flat ? null : holeOrbit(); // 黑洞引力特效：夥伴的繞行位移
     for (const n of nodes) {
       if (n.shown < 0.02) continue;
       if (flat) { n.sx = cx + n.dx * z; n.sy = cy + n.dy * z; n.sk = z; n.sd = 0; }
-      else proj(n, n.dx, n.dy, n.dz);
+      else { const o = orb && orb.get(n); if (o) proj(n, n.dx + o[0], n.dy + o[1], n.dz + o[2]); else proj(n, n.dx, n.dy, n.dz); }
       if (s < 1) { n.sx = cx + (n.sx - cx) * s; n.sy = cy + (n.sy - cy) * s; n.sk *= s; }
     }
   }
@@ -1274,6 +1295,89 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
       if (flat ? d < bd : !best || n.sd < best.sd) { best = n; bd = d; }
     }
     return best;
+  }
+  // ── 黑洞引力特效（3D／4D、有選取者時）：選取者像黑洞——四周壓暗、吸積環繞著他旋轉；
+  //    合作過的人（連同人名與連線）沿著繞著他的橢圓軌道運行：逼近到最近點後慢慢遠離，再繞回來，永遠快到中心卻碰不到。
+  //    軌道半長軸＝他原本的距離（合作越少軌道越大、轉得越慢），最近點不會碰到中心；各人相位錯開，週期也略有不同，所以不會同步。
+  //    4D 時間塔只在水平面繞行，高度（時間）不變。位移只加在畫面投影上（project），不改變排列座標與相機取景，所以「距離＝合作次數」的排列不變。
+  //    滑鼠停在某個人身上時暫停、離開再繼續。設定可關，減少動態時不動 ──
+  const HOLE_COL = { dark: { a: [255, 95, 168], b: [165, 149, 255], w: [255, 236, 246] }, light: { a: [224, 53, 127], b: [123, 107, 240], w: [255, 255, 255] } };
+  const hole = { n: 0, owner: null, who: null, amp: 0, t: 0, clock: 0 };
+  const holeOn = () => { const s = selected; return !!(mode !== "2d" && S.hole !== false && motion && !intro.on && s && s.alive && s.shown > 0.3 && s.sel > 0.3 && !off(s)); };
+  // 克卜勒方程式 M = E − e·sin E（e ≤ 0.5，牛頓法 4 次就夠），回傳 [到中心的距離比例, 真近點角]
+  const kepler = (M, e) => {
+    let E = M;
+    for (let i = 0; i < 4; i++) E = M + e * Math.sin(E);
+    return [1 - e * Math.cos(E), 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2))];
+  };
+  // 每個夥伴這一格的位移（顯示座標）；開關時 amp 緩入緩出、軌道從目前位置起算，所以不會突然跳位
+  function holeOrbit() {
+    const now = performance.now(), dt = Math.min(64, hole.t ? now - hole.t : 16), on = holeOn();
+    hole.t = now;
+    if (on && hole.amp < 0.01) hole.clock = 0;
+    if (!hover) hole.clock += dt * (S.holeSpeed ?? 0.35); // 滑鼠停在某個人身上時整個軌道暫停，離開後從原位繼續（用虛擬時鐘，不會跳位）
+    hole.amp += ((on ? 1 : 0) - hole.amp) * Math.min(1, dt / 350);
+    if (on) hole.who = selected;
+    hole.n = 0;
+    if (hole.amp < 0.004 || !hole.who) { if (!on) { hole.amp = 0; hole.who = null; } return null; }
+    const s = hole.who, out = new Map(), is4 = mode === "4d", floor = (ego.on ? ego.dmin : 40) * 0.85, dmax = ego.on ? ego.dmax : 300;
+    s.links.forEach((l, i) => {
+      if (!l.vis || l.shown < 0.3) return;
+      const n = l.a === s ? l.m : l.a;
+      if (n.shown < 0.3) return;
+      const vx = n.dx - s.dx, vy = n.dy - s.dy, vz = n.dz - s.dz, a = is4 ? Math.hypot(vx, vz) : Math.hypot(vx, vy, vz);
+      if (a < 1e-3) return;
+      const e = Math.min(0.5, Math.max(0, 1 - floor / a - 0.03)); // 最近點不低於 floor：最內圈會變成近圓軌道
+      const M0 = (i % 2 ? 1 : -1) * (Math.PI / 2 - e); // 從「平均距離」處出發，一半往內、一半往外
+      const T = (10000 + 24000 * Math.min(1.2, a / dmax)) * (1 + 0.08 * Math.sin(i * 2.3)); // 越遠週期越長
+      const M = M0 + (2 * Math.PI * hole.clock) / T, [r, nu] = kepler(M, e), [, nu0] = kepler(M0, e);
+      const k = r / (1 - e * Math.cos(M0 + e * Math.sin(M0))), rot = nu - nu0; // 相對於出發位置的縮放與繞轉
+      const c = Math.cos(rot), sn = Math.sin(rot), kx = (vx * c + vz * sn) * k, kz = (-vx * sn + vz * c) * k;
+      out.set(n, [(kx - vx) * hole.amp, (is4 ? 0 : vy * (k - 1)) * hole.amp, (kz - vz) * hole.amp]);
+      hole.n++;
+    });
+    return out;
+  }
+  function drawHole() {
+    const now = performance.now(), s = selected, on = holeOn();
+    hole.owner = on ? s : null;
+    if (!on) return;
+    const C = TH.dark ? HOLE_COL.dark : HOLE_COL.light, rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    const X = s.sx, Y = s.sy, R = Math.max(s.pr, 18), k = s.sel * Math.min(1, s.pa + 0.2);
+    const outside = () => { ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(X, Y, R * 1.04, 0, 7); ctx.clip("evenodd"); }; // 頭像本身不被蓋住
+    // 1) 引力井：頭像以外的四周壓暗，再加一圈外柔光
+    ctx.save();
+    outside();
+    const dk = ctx.createRadialGradient(X, Y, R, X, Y, R * 7);
+    const sh = TH.dark ? "4,2,14" : "40,28,90";
+    dk.addColorStop(0, `rgba(${sh},0.55)`); dk.addColorStop(0.5, `rgba(${sh},0.2)`); dk.addColorStop(1, `rgba(${sh},0)`);
+    ctx.globalAlpha = k * (TH.dark ? 1 : 0.5); ctx.fillStyle = dk; ctx.beginPath(); ctx.arc(X, Y, R * 7, 0, 7); ctx.fill();
+    ctx.globalCompositeOperation = TH.dark ? "lighter" : "source-over";
+    const gl = ctx.createRadialGradient(X, Y, R, X, Y, R * 4.5);
+    gl.addColorStop(0, rgba(C.b, 0.4)); gl.addColorStop(1, rgba(C.b, 0));
+    ctx.globalAlpha = k; ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(X, Y, R * 4.5, 0, 7); ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.globalCompositeOperation = TH.dark ? "lighter" : "source-over";
+    // 2) 吸積環：壓扁成圓盤（俯仰角越大越圓），被頭像擋住的部分剪掉，看起來是環繞在他身後
+    if (ctx.createConicGradient) {
+      ctx.save();
+      outside();
+      ctx.translate(X, Y); ctx.scale(1, 0.3 + 0.55 * Math.abs(Math.sin(cam.pitch)));
+      const cg = ctx.createConicGradient(now / 1100, 0, 0);
+      cg.addColorStop(0, rgba(C.a, 0.1)); cg.addColorStop(0.14, rgba(C.a, 0.95)); cg.addColorStop(0.28, rgba(C.w, 1));
+      cg.addColorStop(0.46, rgba(C.b, 0.9)); cg.addColorStop(0.7, rgba(C.b, 0.12)); cg.addColorStop(1, rgba(C.a, 0.1));
+      ctx.globalAlpha = 0.55 * k; ctx.fillStyle = cg;
+      ctx.beginPath(); ctx.arc(0, 0, R * 2.7, 0, 7); ctx.arc(0, 0, R * 1.5, 0, 7, true); ctx.fill();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = rgba(C.w, 0.35); ctx.globalAlpha = k;
+      ctx.beginPath(); ctx.arc(0, 0, R * 2.05, 0, 7); ctx.stroke();
+      ctx.restore();
+    }
+    // 3) 光子環：貼著頭像邊緣的一圈亮環
+    ctx.globalAlpha = k; ctx.strokeStyle = rgba(C.w, 0.8); ctx.lineWidth = Math.max(1.6, R * 0.06);
+    ctx.shadowColor = rgba(C.a, 1); ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(X, Y, R * 1.1, 0, 7); ctx.stroke();
+    ctx.restore();
   }
   const perf = { ms: 0, av: 0 };
   const tmpC = [0, 0, 0, 1];
@@ -1352,6 +1456,8 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
         ctx.lineWidth = n === hover || n === selected ? 3 : 1.5; ctx.strokeStyle = n === hover || n === selected ? TH.accent : TH.bg; ctx.stroke();
       }
     }
+
+    drawHole();
 
     // 文字標籤：依重要度排序，與已放置的標籤重疊就略過（焦點與女優一定顯示）
     const labelFade = Math.min(1, Math.max(0, (view.zoom - (flat ? 0.35 : 0.3)) / 0.4));
@@ -1587,6 +1693,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     if (n) { setAutoFit(false); follow = n; }
     else if (was) setAutoFit(true);
     if (!n && was) staggerIn(document.querySelectorAll("#rankView .row"));
+    syncStep();
   }
   function followStep() {
     const n = follow;
@@ -1615,16 +1722,48 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
       for (const l of workLinks[idx - 1]) { l.pulse = 1; l.a.pulse = 1; l.m.pulse = 1; }
     }
     render();
+    syncStep();
     if (idx >= N && playing) setPlaying(false); else setPlaying(playing);
   }
+  // 上一部／下一部：有選人就跳到他出演的前一部／後一部作品；沒選人就是依發售日的前一部／後一部
+  let byPerson = null;
+  const worksOf = (name) => {
+    if (!byPerson) {
+      byPerson = new Map();
+      works.forEach((w, i) => { for (const x of [...w.actresses, ...w.males]) { let a = byPerson.get(x); if (!a) byPerson.set(x, a = []); a.push(i); } });
+    }
+    return byPerson.get(name) || [];
+  };
+  // 目前顯示的是 works[idx - 1]：下一部＝序號 ≥ idx 的第一部；上一部＝序號 < idx - 1 的最後一部（回傳要設定的 idx，沒有就回 idx）
+  function workTarget(dir) {
+    if (!selected) return Math.max(0, Math.min(N, idx + dir));
+    const ws = worksOf(selected.name);
+    const j = dir > 0 ? ws.find((x) => x >= idx) : ws.filter((x) => x < idx - 1).pop();
+    return j === undefined ? idx : j + 1;
+  }
+  function stepWork(dir) {
+    const to = workTarget(dir);
+    if (to === idx) return;
+    go(to, true);
+    for (const l of workLinks[idx - 1] || []) { l.pulse = 1; l.a.pulse = 1; l.m.pulse = 1; } // 跳過去的那一部也閃一下
+  }
+  function syncStep() {
+    const who = selected ? selected.name : "";
+    $("prevWork").disabled = workTarget(-1) === idx;
+    $("nextWork").disabled = workTarget(1) === idx;
+    $("prevWork").title = $("prevWork").ariaLabel = who ? `上一部有 ${who} 出演的作品（←）` : "上一部作品（←）";
+    $("nextWork").title = $("nextWork").ariaLabel = who ? `下一部有 ${who} 出演的作品（→）` : "下一部作品（→）";
+  }
+  $("prevWork").addEventListener("click", () => stepWork(-1));
+  $("nextWork").addEventListener("click", () => stepWork(1));
   $("slider").addEventListener("input", (e) => go(+e.target.value, false));
   $("restart").addEventListener("click", () => { go(0, false); setPlaying(false); });
   playBtn.addEventListener("click", () => { if (idx >= N) go(0, false); setPlaying(!playing); });
   addEventListener("keydown", (e) => {
     if (e.target.matches("input,select,textarea")) return;
     if (e.code === "Space") { e.preventDefault(); playBtn.click(); }
-    if (e.code === "ArrowRight") go(idx + 1, true);
-    if (e.code === "ArrowLeft") go(idx - 1, false);
+    if (e.code === "ArrowRight") stepWork(1);
+    if (e.code === "ArrowLeft") stepWork(-1);
     if (e.code === "Escape") { if (!$("settings").hidden) setSettingsOpen(false); else select(null); }
   });
   $("rankBtn").addEventListener("click", () => {
@@ -1870,7 +2009,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     $("viewExtra").hidden = mode === "2d";
     if (rowEls.timeH) rowEls.timeH.hidden = mode !== "4d";
   }
-  function applyMode(m, init) {
+  function setMode(m, init) {
     if (!init && m !== mode) { startTransition(); if (motion) A.animate($("modeBtn"), { scale: [0.82, 1], duration: 480, ease: "outBack" }); }
     mode = m; S.mode = m;
     if (!init) saveSettings();
@@ -1881,45 +2020,6 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     setAutoFit(true); anchor = null; view.vx = view.vy = 0;
     if (selected && selected.alive) { setAutoFit(false); follow = selected; }
     if (!init) needReheat = Math.max(needReheat, 0.7);
-  }
-  // 切到 3D／4D：整張圖被吸進原點（黑洞），換好排列後再從奇點噴出來。可在設定關閉；noFx＝程式內部直接切換（導覽、測試）
-  const bh = document.createElement("div");
-  bh.id = "bh"; bh.hidden = true;
-  bh.innerHTML = '<div class="bh-v"></div><div class="bh-core"><i class="bh-ring"></i><i class="bh-disc"></i></div>';
-  document.body.append(bh);
-  let holeBusy = false;
-  function blackHole(m) {
-    holeBusy = true;
-    const n = selected && selected.alive ? selected : null;
-    const X = n ? n.sx : W / 2, Y = n ? n.sy : H / 2, d = Math.min(W, H) * 0.34;
-    bh.style.setProperty("--bx", X + "px"); bh.style.setProperty("--by", Y + "px"); bh.style.setProperty("--d", d + "px");
-    const veil = bh.querySelector(".bh-v"), core = bh.querySelector(".bh-core"), ring = bh.querySelector(".bh-ring");
-    const cvs = [$("gl"), $("c")];
-    for (const c of cvs) c.style.transformOrigin = `${X}px ${Y}px`;
-    bh.hidden = false;
-    const spin = A.animate(ring, { rotate: [0, 1080], duration: 1500, ease: "linear", loop: true });
-    let applied = false, done = false;
-    const apply = () => { if (!applied) { applied = true; applyMode(m); } };
-    const finish = () => {
-      if (done) return; done = true; clearTimeout(guard); spin.pause(); bh.hidden = true;
-      for (const c of cvs) { c.style.transform = ""; c.style.opacity = ""; c.style.transformOrigin = ""; }
-      holeBusy = false;
-    };
-    const guard = setTimeout(() => { apply(); finish(); }, 2600);
-    // 吸入：整張圖繞著原點旋轉並縮小，黑洞長大、四周暗下來
-    A.animate(veil, { opacity: [0, 1], duration: 560, ease: "inQuad" });
-    A.animate(core, { scale: [0, 1], opacity: [0, 1], duration: 560, ease: "outCubic" });
-    A.animate(cvs, { scale: [1, 0.06], rotate: [0, -160], opacity: [1, 0], duration: 560, ease: "inCubic", onComplete: () => {
-      apply(); // 換成 3D／4D 排列（節點從中心向外滑開），同時畫面由奇點展開回來
-      A.animate(veil, { opacity: [1, 0], duration: 760, ease: "outQuad" });
-      A.animate(core, { scale: [1, 1.7], opacity: [1, 0], duration: 620, ease: "outCubic" });
-      A.animate(cvs, { scale: [0.06, 1], rotate: [160, 0], opacity: [0, 1], duration: 820, ease: "outCubic", onComplete: finish });
-    } });
-  }
-  function setMode(m, init, noFx) {
-    if (holeBusy && !noFx) return;
-    if (!init && !noFx && m !== mode && m !== "2d" && S.hole !== false && motion && !statsOpen && !intro.on) { blackHole(m); return; }
-    applyMode(m, init);
   }
   $("modeBtn").addEventListener("click", () => setMode(mode === "2d" ? "3d" : mode === "3d" ? "4d" : "2d"));
   for (const b of document.querySelectorAll(".modes button")) b.addEventListener("click", () => setMode(b.dataset.mode));
@@ -1975,14 +2075,73 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
   speedSel.addEventListener("change", () => { S.speed = speedSel.value; saveSettings(); });
   const akaOf = new Map();
   for (const a of DATA.actresses) for (const k of a.aka || []) akaOf.set(k, a.name);
-  $("nameList").append(...nodes.map((n) => Object.assign(document.createElement("option"), { value: n.name })),
-    ...[...akaOf].map(([k, v]) => Object.assign(document.createElement("option"), { value: k, label: `＝${v}` })));
-  $("setSearch").addEventListener("change", (e) => {
-    const q = e.target.value.trim(), want = akaOf.get(q) || q;
-    const n = nodes.find((x) => x.name === want);
-    if (n && n.alive) { select(n); e.target.blur(); }
+  // 搜尋建議：自製清單（頭像、人名、女優／男優、作品數），漢字／假名／別名模糊比對；↑↓ 選、Enter 跳過去、Esc 關閉
+  const akaBy = new Map(DATA.actresses.map((a) => [a.name, a.aka || []]));
+  const sugList = $("sugList"), sIn = $("setSearch");
+  let sug = [], sugI = -1, sugClosing = false;
+  function sugFind(q) {
+    const k = fz(q);
+    if (!k) return [];
+    const rows = [];
+    for (const n of nodes) {
+      if (n.kind === "A" && hiddenA.has(n.name)) continue; // 時間軸還沒到他出道也找得到（選到會跳到他的第一部作品）
+      let sc = fzScore(fz(n.name), k), via = "";
+      for (const ak of akaBy.get(n.name) || []) { const v = fzScore(fz(ak), k); if (v > sc) { sc = v; via = ak; } }
+      if (sc > 0) rows.push({ n, sc, via, total: worksOf(n.name).length });
+    }
+    return rows.filter((r) => r.total > 0).sort((x, y) => y.sc - x.sc || y.total - x.total).slice(0, 8);
+  }
+  function sugRender() {
+    const q = sIn.value.trim();
+    sug = sugFind(q); sugI = sug.length ? 0 : -1;
+    sugList.hidden = !q;
+    sIn.setAttribute("aria-expanded", String(!!q));
+    sugList.innerHTML = !q ? "" : sug.length ? sug.map((r, i) => {
+      const A = r.n.kind === "A", img = AV[r.n.name];
+      return `<li role="option" id="sug${i}" data-i="${i}" aria-selected="${i === sugI}">`
+        + (img ? `<img class="sa" src="${img}" alt="">` : `<span class="sa${A ? " a" : ""}" aria-hidden="true">${esc([...r.n.name][0])}</span>`)
+        + `<span class="nm">${esc(r.n.name)}${r.via ? `<small>＝${esc(r.via)}</small>` : ""}</span>`
+        + `<span class="ct"><b class="${A ? "a" : ""}">${A ? "女優" : "男優"}</b>${r.total} 部</span></li>`;
+    }).join("") : '<li class="empty">找不到符合的人</li>';
+  }
+  function sugMove(d) {
+    if (!sug.length) return;
+    sugI = (sugI + d + sug.length) % sug.length;
+    for (const li of sugList.children) { const on = +li.dataset.i === sugI; li.setAttribute("aria-selected", String(on)); if (on) li.scrollIntoView({ block: "nearest" }); }
+    sIn.setAttribute("aria-activedescendant", "sug" + sugI);
+  }
+  function setSearchOpen(v) {
+    const box = $("searchBox"), was = !box.hidden;
+    box.hidden = !v; $("searchBtn").setAttribute("aria-pressed", String(v));
+    if (!v) { sugClosing = true; sIn.blur(); sugClosing = false; sIn.value = ""; sugRender(); return; } // blur 會觸發 change：關閉過程中不要再選一次
+    box.style.right = innerWidth > 700 ? `${innerWidth - $("tools").getBoundingClientRect().left + 8}px` : ""; // 緊貼在工具列左邊
+    if (!was && motion) A.animate(box, { opacity: [0, 1], scale: [0.96, 1], translateX: [8, 0], duration: 240, ease: "outCubic" });
+    sIn.focus(); sIn.select();
+  }
+  const sugPick = (n) => {
+    if (!n) return;
+    if (!n.alive) { const first = worksOf(n.name)[0]; if (first !== undefined) go(first + 1, false); } // 還沒出道：時間軸先跳到他的第一部作品
+    if (n.alive) { select(n); setSearchOpen(false); }
+  };
+  $("searchBtn").addEventListener("click", () => setSearchOpen($("searchBox").hidden));
+  sIn.addEventListener("input", sugRender);
+  sIn.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { setSearchOpen(false); e.stopPropagation(); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowUp") { sugMove(e.key === "ArrowDown" ? 1 : -1); e.preventDefault(); }
+    else if (e.key === "Enter") { if (sug[sugI]) sugPick(sug[sugI].n); e.preventDefault(); }
   });
-  const aList = $("aList"), aBoxes = new Map(), aRows = [];
+  sugList.addEventListener("mousedown", (e) => e.preventDefault()); // 點清單時輸入框不失焦，否則 blur 觸發的 change 會先選到第一位
+  addEventListener("pointerdown", (e) => { if (!$("searchBox").hidden && !e.target.closest("#searchBox,#searchBtn")) setSearchOpen(false); }); // 點到外面＝單純關閉
+  sugList.addEventListener("click", (e) => { const li = e.target.closest("li[data-i]"); if (li) sugPick(sug[+li.dataset.i].n); });
+  sugList.addEventListener("mousemove", (e) => { const li = e.target.closest("li[data-i]"); if (li && +li.dataset.i !== sugI) sugMove(+li.dataset.i - sugI); });
+  // 程式或貼上直接觸發 change（測試用）：完全相同的名字／別名優先，否則取建議第一位
+  sIn.addEventListener("change", () => {
+    const q = sIn.value.trim();
+    if (!q || sugClosing) return;
+    const want = akaOf.get(q) || q;
+    sugPick(nodes.find((x) => x.name === want) || (sugFind(q)[0] || {}).n);
+  });
+  const aList = $("aList"), aBoxes = new Map();
   // 模糊比對：NFKC、平片假名視為同字、常見繁體／異體字併成同一寫法；整段包含 > 依序出現（子序列）
   const VARIANT = { "遙": "遥", "亞": "亜", "澤": "沢", "濱": "浜", "齋": "斎", "齊": "斉", "瀨": "瀬", "櫻": "桜", "戶": "戸", "國": "国", "實": "実", "惠": "恵", "德": "徳", "兒": "児", "學": "学", "廣": "広", "彌": "弥", "會": "会", "藝": "芸", "龍": "竜" };
   const fz = (t) => String(t).normalize("NFKC").toLowerCase()
@@ -2003,24 +2162,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     lab.append(box, `${a.name}（${a.works}）`);
     if (a.aka && a.aka.length) { const k = document.createElement("span"); k.className = "aka"; k.textContent = "＝" + a.aka.join("／"); lab.append(k); }
     aList.append(lab);
-    aRows.push({ a, lab, box, keys: [a.name, ...(a.aka || [])].map(fz) });
   }
-  const aFind = $("aFind"), aCnt = $("aCnt"), aNone0 = document.createElement("div");
-  aNone0.className = "none"; aNone0.textContent = "沒有符合的女優"; aNone0.hidden = true; aList.append(aNone0);
-  const aVisible = () => aRows.filter((r) => !r.lab.hidden);
-  function filterActresses() {
-    const q = fz(aFind.value);
-    if (!q) { aRows.sort((x, y) => y.a.works - x.a.works); }
-    for (const r of aRows) r.sc = q ? Math.max(0, ...r.keys.map((k) => fzScore(k, q))) : 1;
-    if (q) aRows.sort((x, y) => y.sc - x.sc || y.a.works - x.a.works);
-    for (const r of aRows) { r.lab.hidden = r.sc === 0; aList.insertBefore(r.lab, aNone0); }
-    const v = aVisible().length;
-    aNone0.hidden = v > 0;
-    aCnt.textContent = q ? `${v} / ${aRows.length}` : "";
-    aList.scrollTop = 0;
-  }
-  aFind.addEventListener("input", filterActresses);
-  aFind.addEventListener("keydown", (e) => { if (e.key === "Escape" && aFind.value) { aFind.value = ""; filterActresses(); e.stopPropagation(); } });
   function applyHidden() {
     hiddenA.clear();
     for (const [name, box] of aBoxes) if (!box.checked) hiddenA.add(name);
@@ -2028,15 +2170,14 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     recount(idx); needReheat = Math.max(needReheat, 0.6);
     if (selected && !selected.alive) select(null); else render();
   }
-  const setAll = (on) => { for (const r of aVisible()) r.box.checked = on; applyHidden(); };
+  const setAll = (on) => { for (const box of aBoxes.values()) box.checked = on; applyHidden(); };
   $("aAll").addEventListener("click", () => setAll(true));
   $("aNone").addEventListener("click", () => setAll(false));
   $("setReset").addEventListener("click", () => {
     for (const sp of SPEC) S[sp.k] = sp.def;
     S.speed = "1"; speedSel.value = "1"; S.hidden = []; S.autoSpin = false; $("spinChk").checked = false; S.fx = true; $("fxChk").checked = true; applyFx(); S.showAvatars = true; $("avatarChk").checked = true;
-    S.hole = true; $("holeChk").checked = true; S.ego = true; $("egoChk").checked = true; S.egoHide = false; $("egoHideChk").checked = false;
+    S.hole = true; $("holeChk").checked = true; S.ego = true; $("egoChk").checked = true; S.egoHide = true; $("egoHideChk").checked = true;
     hiddenA.clear(); for (const box of aBoxes.values()) box.checked = true;
-    aFind.value = ""; filterActresses();
     for (const k in inputs) inputs[k]();
     try { localStorage.removeItem("graph-settings"); } catch (e) { /* ignore */ }
     retarget(); recount(idx); render(); needReheat = 0.6;
@@ -2059,8 +2200,10 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     get alpha() { return alpha; },
     get zoom() { return view.zoom; },
     get mode() { return mode; },
-    setMode: (m) => setMode(m, false, true),
-    get holeBusy() { return holeBusy; },
+    setMode: (m) => setMode(m),
+    hole: () => ({ n: hole.n, owner: hole.owner ? hole.owner.name : null }),
+    node: (name) => nodes.find((n) => n.name === name),
+    worksOf,
     gl: !!GL,
     perfMs: () => perf.ms,
     avatarsDrawn: () => perf.av,
@@ -2097,7 +2240,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     // 把畫面擺成某個示範狀態：完整時間、指定模式、是否選取最多作品的女優、設定與排行面板開合
     function demo(o) {
       go(N, false); setPlaying(false);
-      if (o.mode && mode !== o.mode) setMode(o.mode, false, true);
+      if (o.mode && mode !== o.mode) setMode(o.mode);
       const want = o.sel ? topActress() : null;
       if (selected !== want) select(want);
       setSettingsOpen(!!o.settings);
@@ -2118,6 +2261,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
           <li><b>時間是另一條獨立的軸</b>（4D 的垂直方向）：她拍第一部片＝時間零點（塔底）；越晚才合作的人，在塔上的位置越高。</li>
           <li><b>所以「先來」不等於「靠近」</b>：早年只合作一次的男優，雖然在塔底，卻離她很遠；晚年才出現、但合作很多次的男優，位置雖高，卻貼近中軸。<b>時間決定他在塔的哪一層，引力決定他離她多近。</b></li>
           <li>刻度用<b>對數</b>：1 次→2 次差很多，20 次→21 次差很少，所以靠近中心的圈比較密、外圈比較疏。</li>
+          <li>3D／4D 選人後，夥伴會真的沿橢圓軌道繞著他轉；越外圈代表合作越少、轉得越慢，靠近時也碰不到中心。</li>
         </ul>
         <div class="note">但書：這是視覺比喻，不是真的物理定律。次數是「已知作品的下限」，也會受作品量與公司安排影響，只能當契合度的參考指標，不是客觀量測。</div>` },
       { t: "這張圖在畫什麼", target: "#legend", act: () => demo({ mode: "2d" }), html: `
@@ -2137,7 +2281,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
         <ul>
           <li><b>離原點越近，合作次數越多</b>。每一圈虛線旁的 <b>×1、×2、×5、×10…</b> 就是那一圈的合作次數。</li>
           <li>刻度是<b>對數</b>：前幾次的差距很大，越到後面越趨緩，所以內圈比較密、外圈比較疏。</li>
-          <li>和原點沒合作過的人會退到最外圍並淡出；想完全隱藏，可到「設定」勾選「原點排列時隱藏無關節點」。</li>
+          <li>和原點沒合作的人預設隱藏；想看他們淡出在外圍，可到「設定」取消勾選「原點排列時隱藏無關節點」。</li>
         </ul>` },
       { t: "2D 與 3D", target: "#modeBtn", act: () => demo({ mode: "3d", sel: true }), html: `
         <ul>
@@ -2152,22 +2296,33 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
           <li>所以你能一眼看出：誰是早期搭檔、誰是後來才加入卻合作很密的人。</li>
         </ul>
         <div class="note">取捨：為了讓「次數多＝一定比較近」永遠成立，晚期高契合者的高度會被壓縮一些，不會因為時間晚就被推遠。</div>` },
+      { t: "黑洞引力特效", target: () => anchorBox(true), soft: true, act: () => demo({ mode: "3d", sel: true }), html: `
+        <ul>
+          <li>3D／4D 選人後，夥伴會沿橢圓軌道繞著他轉；越外圈合作越少、繞得越慢，靠近時也不會碰到中心。</li>
+          <li>滑鼠停在人名上會暫停繞行，移開後接著轉。</li>
+          <li>可到「設定 → 外觀設定」用「黑洞繞行速度」滑桿調整快慢。</li>
+        </ul>` },
       { t: "下方時間軸：播放、拖曳、點年份", target: "#bar", act: () => demo({ mode: "2d", sel: false }), html: `
         <ul>
           <li><b>▶</b> 從頭依作品日期一部一部長出整張圖（空白鍵＝播放／暫停）。</li>
-          <li>拖曳滑桿可前後移動；<b>點下方的年份，直接跳到那一年</b>；<b>←／→</b> 一部一部看。</li>
+          <li>拖曳滑桿可前後移動；<b>點下方的年份，直接跳到那一年</b>；<b>←／→</b>（或播放鍵兩側的按鈕）一部一部看；<b>選了人之後，就是跳到他出演的上一部／下一部作品</b>。</li>
           <li>播放速度在「設定」裡調整。</li>
         </ul>` },
       { t: "排行榜與搜尋", target: "#side", act: () => demo({ mode: "2d", sel: false, side: true }), html: `
         <ul>
           <li>右側是<b>排行榜</b>：女優看作品數與合作男優人數，男優看累計合作作品數。<b>點名字就是選取</b>。</li>
-          <li>要找特定的人：打開「設定 → 顯示過濾」，可以搜尋人名，或用「模糊搜尋」（漢字、假名、別名都行）。</li>
+          <li>要找特定的人：按工具列最左邊的<b>放大鏡</b>搜尋人名（漢字、假名、別名都行），選到就跳過去；要一次篩女優可到「設定 → 顯示過濾」。</li>
+        </ul>` },
+      { t: "搜尋", target: "#searchBtn", act: () => demo({ mode: "2d", sel: false, side: false }), html: `
+        <ul>
+          <li>按工具列的<b>放大鏡</b>，可輸入漢字、假名或別名搜尋人名。</li>
+          <li>按 <b>↑／↓</b> 選擇結果、<b>Enter</b> 跳到那個人；若時間軸還沒到他出道，會自動跳到他的第一部作品。</li>
         </ul>` },
       { t: "設定", target: "#settings", act: () => demo({ mode: "2d", sel: false, side: false, settings: true }), html: `
         <ul>
           <li><b>檢視模式</b>、<b>以他為原點排列</b>與<b>隱藏無關節點</b>的開關都在這裡。</li>
-          <li>「強度設定」調整節點的集中、互斥與連線長度；「外觀設定」可調大小、文字，也能關掉大頭貼、動畫特效，以及切到 3D／4D 的「黑洞轉場」。</li>
-          <li>「顯示過濾」可只留下特定女優，或要求連線最少合作次數。右上的「重設」會全部還原。</li>
+          <li>「強度設定」調整節點的集中、互斥與連線長度；「外觀設定」可調大小、文字、繞行速度，也能關掉大頭貼、動畫特效，以及 3D／4D 選取人物時的「黑洞引力特效」。</li>
+          <li>「顯示過濾」可勾選要顯示的女優，或要求連線最少合作次數。右上的「重設」會全部還原。</li>
         </ul>` },
       { t: "統計：長條圖競賽與統計卡", target: "#statsBtn", need: "#statsBtn", act: () => demo({ mode: "2d", sel: false }), html: `
         <ul>
@@ -2179,6 +2334,8 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
           <dt>原點</dt><dd>你選取的那個人，所有人以他為中心重新排列。</dd>
           <dt>夥伴</dt><dd>和原點合作過的人。</dd>
           <dt>軌道</dt><dd>以原點為中心的虛線圈，每一圈代表一個合作次數。</dd>
+          <dt>繞行</dt><dd>3D／4D 選人後，夥伴沿橢圓軌道繞著原點轉；越外圈轉得越慢。</dd>
+          <dt>上一部／下一部</dt><dd>播放鍵兩側的按鈕；選人後會跳到他出演的上一部／下一部作品。</dd>
           <dt>契合度</dt><dd>本站用「累計合作作品數」當代理指標；這是比喻，不是量測。</dd>
           <dt>對數刻度</dt><dd>次數越多，每多一次的影響越小，所以內圈密、外圈疏。</dd>
           <dt>時間塔</dt><dd>4D 的垂直軸，由下往上＝由早到晚，原點在塔底。</dd>
@@ -2263,7 +2420,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
       if (!active) return;
       active = false; clearTimeout(timer); veil.hidden = true; hole.hidden = true; $("tourBtn").setAttribute("aria-pressed", "false");
       const o = saved; saved = null;
-      if (mode !== o.mode) setMode(o.mode, false, true);
+      if (mode !== o.mode) setMode(o.mode);
       const sel = o.sel && o.sel.alive ? o.sel : null;
       if (selected !== sel) select(sel);
       setSettingsOpen(o.settings);
@@ -2557,7 +2714,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-sh
     // 統計開著時，工具列其他按鈕（模式、排行、置中、設定）＝先回到圖再執行；深淺色切換就地生效
     $("tools").addEventListener("click", (e) => {
       const b = e.target.closest("button");
-      if (statsOpen && b && ["modeBtn", "rankBtn", "fitBtn", "setBtn"].includes(b.id)) closeStats();
+      if (statsOpen && b && ["searchBtn", "modeBtn", "rankBtn", "fitBtn", "setBtn"].includes(b.id)) closeStats();
     }, true);
     for (const b of document.querySelectorAll('#stats [role="tab"]')) b.addEventListener("click", () => setTab(b.dataset.tab));
     addEventListener("keydown", (e) => {
